@@ -1,0 +1,12 @@
+{
+  "name": "japanese-core-expressions",
+  "private": true,
+  "version": "1.0.0",
+  "description": "日语零基础核心表达互动教材静态 PWA",
+  "scripts": {
+    "icons": "node scripts/make-icons.js",
+    "build": "node build.js",
+    "test": "node validate.js",
+    "sync": "node scripts/sync-deployment.js"
+  }
+}

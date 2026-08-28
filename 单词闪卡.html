@@ -1,0 +1,1706 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#17233a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="日语单词闪卡">
+  <link rel="manifest" href="/japanese/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=2">
+  <title>KOTOBA 日语入门闪卡</title>
+  <meta name="description" content="为刚学完五十音的学习者设计的日语 A1 单词闪卡，共 121 张，支持分类、复习计划与语音朗读。">
+  <style>
+:root {
+  --ink: #17233a;
+  --muted: #6d778b;
+  --paper: #fbfaf6;
+  --paper-deep: #f3f0e8;
+  --navy: #17233a;
+  --navy-soft: #233252;
+  --coral: #e46954;
+  --gold: #d7a33d;
+  --line: #e4e0d7;
+  --white: #ffffff;
+  --shadow: 0 16px 42px rgba(26, 35, 56, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 73% 13%, rgba(228, 105, 84, 0.08), transparent 24rem),
+    linear-gradient(135deg, #fbfaf6 0%, #f8f6ef 100%);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Noto Sans CJK JP", sans-serif;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button {
+  color: inherit;
+  font: inherit;
+}
+
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid rgba(228, 105, 84, 0.35);
+  outline-offset: 3px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 276px minmax(0, 1fr);
+  isolation: isolate;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px 22px;
+  color: #f7f5ef;
+  background:
+    radial-gradient(circle at 10% 12%, rgba(255, 255, 255, 0.08), transparent 12rem),
+    linear-gradient(180deg, #1a2741 0%, #131d31 100%);
+  box-shadow: 8px 0 34px rgba(15, 24, 41, 0.09);
+  z-index: 2;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 8px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand-seal {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: white;
+  background: var(--coral);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 8px 18px rgba(0, 0, 0, 0.18);
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: 25px;
+  font-weight: 700;
+  transform: rotate(-2deg);
+}
+
+.brand-kicker {
+  margin: 0 0 3px;
+  color: #f2b0a3;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+
+.module-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin: 18px 7px 0;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.module-switcher a {
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #aeb8c9;
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.module-switcher a:hover { color: white; }
+
+.module-switcher a:focus-visible {
+  outline: 3px solid rgba(242, 176, 163, 0.42);
+  outline-offset: 2px;
+}
+
+.module-switcher a[aria-current="page"] {
+  color: var(--navy);
+  background: #fbfaf6;
+  box-shadow: 0 7px 18px rgba(7, 13, 24, 0.18);
+}
+
+.sidebar-label {
+  margin: 24px 10px 10px;
+  color: #8e9ab0;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+}
+
+.category-nav {
+  display: grid;
+  gap: 4px;
+}
+
+.category-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 12px;
+  color: #cad1de;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.category-button:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateX(2px);
+}
+
+.category-button.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: inset 3px 0 0 var(--coral);
+}
+
+.category-mark,
+.mini-mark {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: white;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.category-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.category-copy strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.category-copy small {
+  color: #7f8ba1;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.category-button.active .category-copy small {
+  color: #adb7c7;
+}
+
+.all-mark { background: #67748c; }
+.coral { background: #df6b57; }
+.gold { background: #c89634; }
+.mint { background: #4d9d83; }
+.rose { background: #c65d78; }
+.blue { background: #4b7fc1; }
+.violet { background: #7869b1; }
+.cyan { background: #3b91a6; }
+.orange { background: #c77b3c; }
+.lime { background: #79904e; }
+
+.sidebar-foot {
+  margin-top: auto;
+  padding: 22px 10px 0;
+}
+
+.save-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #929db0;
+  font-size: 11px;
+}
+
+.save-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #77b79b;
+  box-shadow: 0 0 0 4px rgba(119, 183, 155, 0.1);
+}
+
+.text-button {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.text-button.danger { color: #a4adbd; }
+.text-button.danger:hover { color: #f09b8a; }
+
+.workspace {
+  min-width: 0;
+  padding: 36px clamp(28px, 4vw, 64px) 24px;
+}
+
+.topbar {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 7px;
+  color: var(--coral);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.topbar h2 {
+  margin: 0;
+  color: var(--navy);
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Songti SC", serif;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.secondary-button,
+.audio-button,
+.reveal-button,
+.circle-button {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.secondary-button:hover,
+.audio-button:hover,
+.reveal-button:hover,
+.circle-button:hover {
+  transform: translateY(-1px);
+  border-color: #cec8ba;
+  box-shadow: 0 8px 20px rgba(35, 45, 65, 0.08);
+}
+
+.secondary-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border-radius: 12px;
+  color: #4a566d;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.secondary-button span {
+  color: var(--coral);
+  font-size: 20px;
+  line-height: 0;
+}
+
+.mode-row {
+  max-width: 1160px;
+  margin: 28px auto 24px;
+  display: flex;
+  gap: 5px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mode-row button {
+  position: relative;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 10px;
+  color: #758096;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mode-row button:hover { color: var(--ink); }
+
+.mode-row button.active {
+  color: var(--ink);
+  background: white;
+  box-shadow: 0 5px 16px rgba(27, 38, 60, 0.07);
+}
+
+.mode-row button.active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--coral);
+  transform: translateX(-50%);
+}
+
+.mode-row button span {
+  margin-left: 5px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  color: white;
+  background: var(--coral);
+  font-size: 9px;
+}
+
+.study-grid {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(500px, 1fr) 280px;
+  gap: clamp(28px, 4vw, 58px);
+  align-items: start;
+}
+
+.study-stage {
+  min-width: 0;
+}
+
+.card-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 11px;
+}
+
+.card-position {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #687389;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.card-position b {
+  margin-left: 3px;
+  color: #a2a9b6;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.mini-mark {
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.audio-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 10px;
+  color: #677287;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.audio-button span {
+  color: var(--coral);
+  font-size: 15px;
+}
+
+.flashcard {
+  position: relative;
+  min-height: 430px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: clamp(34px, 6vw, 66px);
+  border: 1px solid #e2ded3;
+  border-radius: 25px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72)),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(28, 42, 65, 0.025) 31px 32px),
+    #fffefa;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  user-select: none;
+  contain: layout paint style;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.flashcard:hover {
+  border-color: #d6d0c3;
+  box-shadow: 0 20px 48px rgba(26, 35, 56, 0.12);
+}
+
+.flashcard.is-flipped {
+  background:
+    radial-gradient(circle at 92% 13%, rgba(228, 105, 84, 0.09), transparent 13rem),
+    linear-gradient(rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.84)),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(28, 42, 65, 0.025) 31px 32px),
+    #fffefa;
+}
+
+.flashcard.is-flipped {
+  min-height: 540px;
+  padding-top: 38px;
+  padding-bottom: 38px;
+}
+
+.card-corner {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  pointer-events: none;
+}
+
+.card-corner.top-left {
+  top: 18px;
+  left: 18px;
+  border-top: 2px solid rgba(228, 105, 84, 0.27);
+  border-left: 2px solid rgba(228, 105, 84, 0.27);
+  border-radius: 12px 0 0;
+}
+
+.card-corner.bottom-right {
+  right: 18px;
+  bottom: 18px;
+  border-right: 2px solid rgba(228, 105, 84, 0.27);
+  border-bottom: 2px solid rgba(228, 105, 84, 0.27);
+  border-radius: 0 0 12px;
+}
+
+.front-content,
+.back-content {
+  width: 100%;
+  text-align: center;
+}
+
+.card-prompt {
+  margin: 0 0 38px;
+  color: #98a0ad;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+}
+
+.kana {
+  color: var(--navy);
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", serif;
+  font-size: clamp(48px, 7vw, 78px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.form-hint {
+  display: inline-block;
+  margin-top: 19px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #a07f54;
+  background: #f6eddd;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.tap-hint {
+  margin-top: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  color: #a0a7b2;
+  font-size: 10px;
+}
+
+kbd {
+  display: inline-grid;
+  min-width: 21px;
+  height: 20px;
+  place-items: center;
+  padding: 0 5px;
+  border: 1px solid #d8d4ca;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  color: #7b8494;
+  background: #fff;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.back-content .card-prompt {
+  margin-bottom: 14px;
+}
+
+.dictionary-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dictionary-label,
+.pos-badge,
+.reading-label,
+.definition-label,
+.example-label {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.dictionary-label {
+  padding: 4px 9px;
+  color: #a45f51;
+  background: #f8e8e3;
+}
+
+.pos-badge {
+  padding: 4px 9px;
+  color: #647188;
+  background: #edf0f4;
+}
+
+.writing {
+  color: var(--navy);
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Songti SC", serif;
+  font-size: clamp(36px, 5.2vw, 61px);
+  font-weight: 650;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.reading-row {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #5f6b80;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.reading-label {
+  padding: 3px 7px;
+  color: #907246;
+  background: #f6eddd;
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: 8px;
+}
+
+.polite-form {
+  margin: 13px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #536078;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.polite-form span {
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: #9a7749;
+  background: #f6eddd;
+  font-size: 9px;
+}
+
+.meaning {
+  margin: 0;
+  color: #b9503d;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.definition-grid {
+  max-width: 520px;
+  margin: 18px auto 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  text-align: left;
+}
+
+.definition-item {
+  padding: 13px 15px;
+  border: 1px solid #e8e3d9;
+  border-radius: 12px;
+  background: rgba(249, 247, 241, 0.82);
+}
+
+.definition-item.chinese {
+  background: rgba(252, 241, 237, 0.72);
+  border-color: #eeddd7;
+}
+
+.definition-label {
+  margin-bottom: 7px;
+  color: #7f8999;
+  font-size: 8px;
+}
+
+.definition-item.chinese .definition-label {
+  color: #a5695f;
+}
+
+.definition-item.chinese .meaning {
+  font-size: 17px;
+}
+
+.jp-definition {
+  margin: 0;
+  color: #3d4a61;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.example-box {
+  max-width: 520px;
+  margin: 10px auto 0;
+  padding: 13px 18px;
+  border: 1px solid #ece7dc;
+  border-radius: 14px;
+  background: rgba(248, 246, 239, 0.82);
+}
+
+.example-label {
+  margin-bottom: 6px;
+  color: #858e9d;
+  font-size: 8px;
+}
+
+.example-jp {
+  color: #33415a;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.example-zh {
+  margin-top: 7px;
+  color: #858d9a;
+  font-size: 11px;
+}
+
+.learning-note {
+  max-width: 520px;
+  margin: 11px auto 0;
+  color: #8e7659;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.card-navigation {
+  min-height: 58px;
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 16px;
+}
+
+.circle-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #657087;
+  font-size: 17px;
+}
+
+.reveal-button {
+  justify-self: center;
+  min-width: 170px;
+  padding: 12px 22px;
+  border-color: var(--navy);
+  border-radius: 12px;
+  color: white;
+  background: var(--navy);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.reveal-button:hover {
+  border-color: var(--navy-soft);
+  background: var(--navy-soft);
+}
+
+.rating-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rating-buttons button {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  gap: 1px 7px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: white;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 750;
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.rating-buttons button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(30, 40, 60, 0.08);
+}
+
+.rating-buttons button small {
+  grid-column: 1 / -1;
+  color: #9aa1ad;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.rating-buttons .again:hover { border-color: #e49a8d; }
+.rating-buttons .hard:hover { border-color: #d4b66c; }
+.rating-buttons .know:hover { border-color: #79ad99; }
+
+.progress-panel {
+  display: grid;
+  gap: 17px;
+  padding-top: 39px;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-heading span {
+  color: #626e83;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.panel-heading strong {
+  color: var(--coral);
+  font-size: 18px;
+}
+
+.progress-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #e4e0d7;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #df6b57, #ed9a78);
+  transition: width 280ms ease;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-grid div {
+  min-width: 0;
+  padding: 12px 7px;
+  border: 1px solid #e7e2d8;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  text-align: center;
+}
+
+.stat-grid strong {
+  display: block;
+  color: #34415a;
+  font-family: "Yu Mincho", serif;
+  font-size: 20px;
+}
+
+.stat-grid span {
+  display: block;
+  margin-top: 3px;
+  color: #949ba8;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.mastery-card,
+.tip-card,
+.shortcut-card {
+  border: 1px solid #e5e0d5;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.mastery-card {
+  padding: 16px;
+}
+
+.panel-heading.compact strong {
+  color: #657187;
+  font-size: 11px;
+}
+
+.mastery-dots {
+  display: flex;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.mastery-dots span {
+  flex: 1;
+  height: 5px;
+  border-radius: 5px;
+  background: #ddd9d0;
+}
+
+.mastery-dots span.filled {
+  background: #5c9d83;
+}
+
+.mastery-card p {
+  margin: 10px 0 0;
+  color: #929aa8;
+  font-size: 9px;
+}
+
+.tip-card {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #fff8ea;
+  border-color: #eadbb9;
+}
+
+.tip-icon {
+  flex: 0 0 auto;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #9e7330;
+  background: #f3dfad;
+  font-family: "Yu Mincho", serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tip-card strong,
+.shortcut-card strong {
+  color: #596479;
+  font-size: 10px;
+}
+
+.tip-card p {
+  margin: 5px 0 0;
+  color: #8d816e;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.shortcut-card {
+  display: grid;
+  gap: 9px;
+  padding: 15px;
+}
+
+.shortcut-card > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #8d95a3;
+  font-size: 8px;
+}
+
+.shortcut-card kbd {
+  min-width: 18px;
+  height: 17px;
+  margin-right: 2px;
+  font-size: 7px;
+}
+
+.empty-state {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  border: 1px solid #e4dfd5;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.empty-seal {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: white;
+  background: #5c9d83;
+  font-family: "Yu Mincho", serif;
+  font-size: 28px;
+}
+
+.empty-state h3 {
+  margin: 22px 0 8px;
+  font-family: "Yu Mincho", serif;
+  font-size: 22px;
+}
+
+.empty-state p {
+  max-width: 410px;
+  margin: 0 0 25px;
+  color: #7e8796;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.source-note {
+  max-width: 1160px;
+  margin: 34px auto 0;
+  color: #a0a6b0;
+  font-size: 9px;
+  text-align: center;
+}
+
+@media (max-width: 1050px) {
+  .app-shell { grid-template-columns: 238px minmax(0, 1fr); }
+  .sidebar { padding-left: 13px; padding-right: 13px; }
+  .study-grid { grid-template-columns: minmax(460px, 1fr) 230px; gap: 28px; }
+  .workspace { padding-left: 28px; padding-right: 28px; }
+  .kana { font-size: clamp(44px, 6vw, 66px); }
+}
+
+@media (max-width: 860px) {
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .app-shell { display: block; }
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    padding: 18px 20px;
+  }
+  .brand { padding-bottom: 16px; }
+  .module-switcher {
+    position: fixed;
+    z-index: 60;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 12px;
+    width: min(360px, calc(100% - 24px));
+    margin: 0 auto;
+    padding: 6px;
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(23, 35, 58, 0.96);
+    box-shadow: 0 16px 38px rgba(12, 19, 33, 0.24);
+  }
+  .module-switcher a { min-height: 44px; }
+  .sidebar-label { margin-top: 15px; }
+  .category-nav {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .category-button {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 125px;
+    padding: 8px 10px;
+  }
+  .category-copy { display: block; }
+  .category-copy small { display: block; margin-top: 2px; }
+  .sidebar-foot { display: none; }
+  .study-grid { grid-template-columns: 1fr; }
+  .progress-panel {
+    grid-template-columns: 1fr 1fr;
+    padding-top: 0;
+  }
+  .progress-panel > .panel-heading,
+  .progress-panel > .progress-track,
+  .progress-panel > .stat-grid { grid-column: 1 / -1; }
+}
+
+@media (max-width: 600px) {
+  .workspace { padding: 24px 15px 18px; }
+  .topbar { align-items: flex-end; }
+  .topbar h2 { font-size: 25px; }
+  .secondary-button { padding: 9px 11px; }
+  .secondary-button { font-size: 0; }
+  .secondary-button span { font-size: 20px; }
+  .mode-row { margin-top: 22px; overflow-x: auto; }
+  .mode-row button { white-space: nowrap; }
+  .study-grid { display: block; }
+  .flashcard { min-height: 400px; padding: 36px 24px; border-radius: 20px; }
+  .flashcard.is-flipped { min-height: 570px; padding: 30px 18px; }
+  .definition-grid { grid-template-columns: 1fr; }
+  .kana { font-size: clamp(39px, 12vw, 58px); }
+  .writing { font-size: clamp(34px, 10vw, 49px); }
+  .card-navigation { grid-template-columns: 36px minmax(0, 1fr) 36px; gap: 8px; }
+  .circle-button { width: 36px; height: 36px; }
+  .rating-buttons { gap: 5px; }
+  .rating-buttons button { padding: 7px 5px; gap: 2px 4px; }
+  .rating-buttons button kbd { display: none; }
+  .progress-panel { grid-template-columns: 1fr; margin-top: 34px; }
+  .progress-panel > * { grid-column: 1 !important; }
+  .source-note { line-height: 1.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <noscript>请在浏览器设置中启用 JavaScript 后使用闪卡。</noscript>
+  <script>
+const categoryMeta = [
+  { name: "生存表达", mark: "話", tone: "coral" },
+  { name: "人物与语言", mark: "人", tone: "gold" },
+  { name: "地点与物品", mark: "所", tone: "mint" },
+  { name: "食物与饮料", mark: "食", tone: "rose" },
+  { name: "基础动词", mark: "動", tone: "blue" },
+  { name: "形容与喜好", mark: "形", tone: "violet" },
+  { name: "时间与频率", mark: "時", tone: "cyan" },
+  { name: "疑问词", mark: "問", tone: "orange" },
+  { name: "数字 0—10", mark: "数", tone: "lime" },
+];
+const cards = [
+  // 生存表达
+  { id: "greeting-01", category: "生存表达", kana: "おはようございます", writing: "おはようございます", meaning: "早上好", example: "おはようございます、先生。", exampleZh: "老师，早上好。" },
+  { id: "greeting-02", category: "生存表达", kana: "こんにちは", writing: "こんにちは", meaning: "你好；下午好", example: "こんにちは、田中さん。", exampleZh: "田中先生，你好。" },
+  { id: "greeting-03", category: "生存表达", kana: "こんばんは", writing: "こんばんは", meaning: "晚上好", example: "こんばんは。今日は寒いですね。", exampleZh: "晚上好。今天很冷呢。" },
+  { id: "greeting-04", category: "生存表达", kana: "じゃあ、また", writing: "じゃあ、また", meaning: "那么，再见", example: "じゃあ、また明日。", exampleZh: "那么，明天见。" },
+  { id: "greeting-05", category: "生存表达", kana: "ありがとうございます", writing: "ありがとうございます", meaning: "谢谢", example: "どうもありがとうございます。", exampleZh: "非常感谢。" },
+  { id: "greeting-06", category: "生存表达", kana: "すみません", writing: "すみません", meaning: "对不起；劳驾；谢谢", example: "すみません、駅はどこですか。", exampleZh: "劳驾，请问车站在哪里？", note: "既可道歉，也可用于搭话或表达感谢。" },
+  { id: "greeting-07", category: "生存表达", kana: "おねがいします", writing: "お願いします", meaning: "拜托了；请", example: "もう一度お願いします。", exampleZh: "请再说一次。" },
+  { id: "greeting-08", category: "生存表达", kana: "どうぞ", writing: "どうぞ", meaning: "请；给你", example: "はい、どうぞ。", exampleZh: "好的，给你。" },
+  { id: "greeting-09", category: "生存表达", kana: "はじめまして", writing: "はじめまして", meaning: "初次见面", example: "はじめまして、李です。", exampleZh: "初次见面，我姓李。" },
+  { id: "greeting-10", category: "生存表达", kana: "よろしくおねがいします", writing: "よろしくお願いします", meaning: "请多关照", example: "どうぞよろしくお願いします。", exampleZh: "请多关照。" },
+  { id: "greeting-11", category: "生存表达", kana: "わかります", writing: "分かります", meaning: "明白；懂", example: "日本語が少し分かります。", exampleZh: "我懂一点日语。" },
+  { id: "greeting-12", category: "生存表达", kana: "わかりません", writing: "分かりません", meaning: "不明白；不懂", example: "すみません、分かりません。", exampleZh: "对不起，我不明白。" },
+  { id: "greeting-13", category: "生存表达", kana: "もういちど", writing: "もう一度", meaning: "再一次", example: "もう一度言ってください。", exampleZh: "请再说一次。" },
+  { id: "greeting-14", category: "生存表达", kana: "ゆっくり", writing: "ゆっくり", meaning: "慢慢地", example: "ゆっくり話してください。", exampleZh: "请说慢一点。" },
+
+  // 人物与语言
+  { id: "people-01", category: "人物与语言", kana: "わたし", writing: "私", meaning: "我", example: "私は学生です。", exampleZh: "我是学生。" },
+  { id: "people-02", category: "人物与语言", kana: "ひと", writing: "人", meaning: "人", example: "あの人は先生です。", exampleZh: "那个人是老师。" },
+  { id: "people-03", category: "人物与语言", kana: "ともだち", writing: "友達", meaning: "朋友", example: "友達と話します。", exampleZh: "和朋友说话。" },
+  { id: "people-04", category: "人物与语言", kana: "かぞく", writing: "家族", meaning: "家人；家庭", example: "家族は三人です。", exampleZh: "我家有三个人。" },
+  { id: "people-05", category: "人物与语言", kana: "ちち", writing: "父", meaning: "我父亲", example: "父は会社員です。", exampleZh: "我父亲是公司职员。", note: "向别人谈论自己的父亲时使用。" },
+  { id: "people-06", category: "人物与语言", kana: "はは", writing: "母", meaning: "我母亲", example: "母は料理が好きです。", exampleZh: "我母亲喜欢做菜。", note: "向别人谈论自己的母亲时使用。" },
+  { id: "people-07", category: "人物与语言", kana: "おとうさん", writing: "お父さん", meaning: "父亲；别人的父亲", example: "お父さんはお元気ですか。", exampleZh: "您父亲身体好吗？" },
+  { id: "people-08", category: "人物与语言", kana: "おかあさん", writing: "お母さん", meaning: "母亲；别人的母亲", example: "お母さんは先生です。", exampleZh: "您的母亲是老师。" },
+  { id: "people-09", category: "人物与语言", kana: "せんせい", writing: "先生", meaning: "老师", example: "田中先生です。", exampleZh: "是田中老师。" },
+  { id: "people-10", category: "人物与语言", kana: "がくせい", writing: "学生", meaning: "学生", example: "私は学生です。", exampleZh: "我是学生。" },
+  { id: "people-11", category: "人物与语言", kana: "かいしゃいん", writing: "会社員", meaning: "公司职员", example: "兄は会社員です。", exampleZh: "我哥哥是公司职员。" },
+  { id: "people-12", category: "人物与语言", kana: "なまえ", writing: "名前", meaning: "名字", example: "名前を書いてください。", exampleZh: "请写下名字。" },
+  { id: "people-13", category: "人物与语言", kana: "くに", writing: "国", meaning: "国家", example: "お国はどちらですか。", exampleZh: "您来自哪个国家？" },
+  { id: "people-14", category: "人物与语言", kana: "にほんご", writing: "日本語", meaning: "日语", example: "日本語を勉強します。", exampleZh: "学习日语。" },
+  { id: "people-15", category: "人物与语言", kana: "ちゅうごくご", writing: "中国語", meaning: "中文；汉语", example: "中国語を話します。", exampleZh: "说中文。" },
+
+  // 地点与物品
+  { id: "place-01", category: "地点与物品", kana: "いえ", writing: "家", meaning: "房子；家", example: "大きい家ですね。", exampleZh: "好大的房子啊。" },
+  { id: "place-02", category: "地点与物品", kana: "うち", writing: "うち", meaning: "自己家；我家", example: "うちに帰ります。", exampleZh: "回家。" },
+  { id: "place-03", category: "地点与物品", kana: "へや", writing: "部屋", meaning: "房间", example: "この部屋はきれいです。", exampleZh: "这个房间很干净。" },
+  { id: "place-04", category: "地点与物品", kana: "がっこう", writing: "学校", meaning: "学校", example: "学校に行きます。", exampleZh: "去学校。" },
+  { id: "place-05", category: "地点与物品", kana: "かいしゃ", writing: "会社", meaning: "公司", example: "会社で働きます。", exampleZh: "在公司工作。" },
+  { id: "place-06", category: "地点与物品", kana: "えき", writing: "駅", meaning: "车站", example: "駅はどこですか。", exampleZh: "车站在哪里？" },
+  { id: "place-07", category: "地点与物品", kana: "みせ", writing: "店", meaning: "商店；店铺", example: "あの店でパンを買います。", exampleZh: "在那家店买面包。" },
+  { id: "place-08", category: "地点与物品", kana: "トイレ", writing: "トイレ", meaning: "厕所；洗手间", example: "トイレはあそこです。", exampleZh: "洗手间在那里。" },
+  { id: "place-09", category: "地点与物品", kana: "ほん", writing: "本", meaning: "书", example: "本を読みます。", exampleZh: "读书。" },
+  { id: "place-10", category: "地点与物品", kana: "かさ", writing: "傘", meaning: "雨伞", example: "これは私の傘です。", exampleZh: "这是我的雨伞。" },
+  { id: "place-11", category: "地点与物品", kana: "でんわ", writing: "電話", meaning: "电话", example: "母に電話をします。", exampleZh: "给母亲打电话。" },
+  { id: "place-12", category: "地点与物品", kana: "スマホ", writing: "スマホ", meaning: "智能手机", example: "スマホを見ます。", exampleZh: "看手机。" },
+  { id: "place-13", category: "地点与物品", kana: "くるま", writing: "車", meaning: "汽车", example: "車で行きます。", exampleZh: "坐车去。" },
+
+  // 食物与饮料
+  { id: "food-01", category: "食物与饮料", kana: "みず", writing: "水", meaning: "水", example: "水を飲みます。", exampleZh: "喝水。" },
+  { id: "food-02", category: "食物与饮料", kana: "おちゃ", writing: "お茶", meaning: "茶", example: "お茶をどうぞ。", exampleZh: "请喝茶。" },
+  { id: "food-03", category: "食物与饮料", kana: "コーヒー", writing: "コーヒー", meaning: "咖啡", example: "コーヒーが好きです。", exampleZh: "我喜欢咖啡。" },
+  { id: "food-04", category: "食物与饮料", kana: "ごはん", writing: "ご飯", meaning: "米饭；一顿饭", example: "ご飯を食べます。", exampleZh: "吃饭。" },
+  { id: "food-05", category: "食物与饮料", kana: "パン", writing: "パン", meaning: "面包", example: "朝はパンを食べます。", exampleZh: "早上吃面包。" },
+  { id: "food-06", category: "食物与饮料", kana: "にく", writing: "肉", meaning: "肉", example: "肉が好きです。", exampleZh: "我喜欢肉。" },
+  { id: "food-07", category: "食物与饮料", kana: "さかな", writing: "魚", meaning: "鱼", example: "魚を食べます。", exampleZh: "吃鱼。" },
+  { id: "food-08", category: "食物与饮料", kana: "たまご", writing: "卵", meaning: "鸡蛋", example: "卵を買います。", exampleZh: "买鸡蛋。" },
+  { id: "food-09", category: "食物与饮料", kana: "やさい", writing: "野菜", meaning: "蔬菜", example: "野菜をよく食べます。", exampleZh: "经常吃蔬菜。" },
+  { id: "food-10", category: "食物与饮料", kana: "くだもの", writing: "果物", meaning: "水果", example: "果物が好きです。", exampleZh: "我喜欢水果。" },
+  { id: "food-11", category: "食物与饮料", kana: "りょうり", writing: "料理", meaning: "菜肴；料理", example: "日本料理はおいしいです。", exampleZh: "日本料理很好吃。" },
+  { id: "food-12", category: "食物与饮料", kana: "カレー", writing: "カレー", meaning: "咖喱", example: "カレーを食べます。", exampleZh: "吃咖喱。" },
+  { id: "food-13", category: "食物与饮料", kana: "あさごはん", writing: "朝ご飯", meaning: "早饭", example: "七時に朝ご飯を食べます。", exampleZh: "七点吃早饭。" },
+  { id: "food-14", category: "食物与饮料", kana: "ひるごはん", writing: "昼ご飯", meaning: "午饭", example: "駅で昼ご飯を食べます。", exampleZh: "在车站吃午饭。" },
+  { id: "food-15", category: "食物与饮料", kana: "ばんごはん", writing: "晩ご飯", meaning: "晚饭", example: "晩ご飯はカレーです。", exampleZh: "晚饭是咖喱。" },
+
+  // 基础动词
+  { id: "verb-01", category: "基础动词", kana: "いく", writing: "行く", polite: "いきます", meaning: "去", example: "学校に行きます。", exampleZh: "去学校。" },
+  { id: "verb-02", category: "基础动词", kana: "くる", writing: "来る", polite: "きます", meaning: "来", example: "日本に来ます。", exampleZh: "来日本。" },
+  { id: "verb-03", category: "基础动词", kana: "かえる", writing: "帰る", polite: "かえります", meaning: "回去；回家", example: "うちに帰ります。", exampleZh: "回家。" },
+  { id: "verb-04", category: "基础动词", kana: "たべる", writing: "食べる", polite: "たべます", meaning: "吃", example: "ご飯を食べます。", exampleZh: "吃饭。" },
+  { id: "verb-05", category: "基础动词", kana: "のむ", writing: "飲む", polite: "のみます", meaning: "喝", example: "水を飲みます。", exampleZh: "喝水。" },
+  { id: "verb-06", category: "基础动词", kana: "みる", writing: "見る", polite: "みます", meaning: "看", example: "テレビを見ます。", exampleZh: "看电视。" },
+  { id: "verb-07", category: "基础动词", kana: "きく", writing: "聞く", polite: "ききます", meaning: "听；询问", example: "音楽を聞きます。", exampleZh: "听音乐。" },
+  { id: "verb-08", category: "基础动词", kana: "よむ", writing: "読む", polite: "よみます", meaning: "读", example: "本を読みます。", exampleZh: "读书。" },
+  { id: "verb-09", category: "基础动词", kana: "かく", writing: "書く", polite: "かきます", meaning: "写", example: "名前を書きます。", exampleZh: "写名字。" },
+  { id: "verb-10", category: "基础动词", kana: "はなす", writing: "話す", polite: "はなします", meaning: "说；交谈", example: "日本語を話します。", exampleZh: "说日语。" },
+  { id: "verb-11", category: "基础动词", kana: "かう", writing: "買う", polite: "かいます", meaning: "买", example: "パンを買います。", exampleZh: "买面包。" },
+  { id: "verb-12", category: "基础动词", kana: "おきる", writing: "起きる", polite: "おきます", meaning: "起床", example: "七時に起きます。", exampleZh: "七点起床。" },
+  { id: "verb-13", category: "基础动词", kana: "ねる", writing: "寝る", polite: "ねます", meaning: "睡觉", example: "十一時に寝ます。", exampleZh: "十一点睡觉。" },
+  { id: "verb-14", category: "基础动词", kana: "する", writing: "する", polite: "します", meaning: "做", example: "宿題をします。", exampleZh: "做作业。" },
+  { id: "verb-15", category: "基础动词", kana: "べんきょうする", writing: "勉強する", polite: "べんきょうします", meaning: "学习", example: "毎日、日本語を勉強します。", exampleZh: "每天学习日语。" },
+
+  // 形容与喜好
+  { id: "adj-01", category: "形容与喜好", kana: "おおきい", writing: "大きい", meaning: "大的", example: "大きい家ですね。", exampleZh: "好大的房子啊。" },
+  { id: "adj-02", category: "形容与喜好", kana: "ちいさい", writing: "小さい", meaning: "小的", example: "小さい車です。", exampleZh: "是一辆小汽车。" },
+  { id: "adj-03", category: "形容与喜好", kana: "あたらしい", writing: "新しい", meaning: "新的", example: "新しいスマホです。", exampleZh: "是新手机。" },
+  { id: "adj-04", category: "形容与喜好", kana: "ふるい", writing: "古い", meaning: "旧的；古老的", example: "古い本です。", exampleZh: "是一本旧书。" },
+  { id: "adj-05", category: "形容与喜好", kana: "たかい", writing: "高い", meaning: "贵的；高的", example: "この車は高いです。", exampleZh: "这辆车很贵。" },
+  { id: "adj-06", category: "形容与喜好", kana: "やすい", writing: "安い", meaning: "便宜的", example: "この店は安いです。", exampleZh: "这家店很便宜。" },
+  { id: "adj-07", category: "形容与喜好", kana: "いい", writing: "良い", meaning: "好的", example: "いい天気ですね。", exampleZh: "天气真好啊。", note: "现在和肯定形常用「いい」；变化时会出现「よくない」等形式。" },
+  { id: "adj-08", category: "形容与喜好", kana: "おいしい", writing: "おいしい", meaning: "好吃的", example: "この料理はおいしいです。", exampleZh: "这道菜很好吃。" },
+  { id: "adj-09", category: "形容与喜好", kana: "たのしい", writing: "楽しい", meaning: "开心的；有趣的", example: "日本語は楽しいです。", exampleZh: "日语很有趣。" },
+  { id: "adj-10", category: "形容与喜好", kana: "いそがしい", writing: "忙しい", meaning: "忙的", example: "今日は忙しいです。", exampleZh: "今天很忙。" },
+  { id: "adj-11", category: "形容与喜好", kana: "すき", writing: "好き", meaning: "喜欢", example: "コーヒーが好きです。", exampleZh: "我喜欢咖啡。", note: "属于な形容词；使用「Nが好きです」。" },
+  { id: "adj-12", category: "形容与喜好", kana: "きらい", writing: "嫌い", meaning: "不喜欢；讨厌", example: "魚は嫌いです。", exampleZh: "我不喜欢鱼。", note: "属于な形容词，不是普通的い形容词。" },
+  { id: "adj-13", category: "形容与喜好", kana: "きれい", writing: "きれい", meaning: "漂亮；干净", example: "この部屋はきれいです。", exampleZh: "这个房间很干净。", note: "虽然以「い」结尾，但属于な形容词。" },
+
+  // 时间与频率
+  { id: "time-01", category: "时间与频率", kana: "いま", writing: "今", meaning: "现在", example: "今、何時ですか。", exampleZh: "现在几点？" },
+  { id: "time-02", category: "时间与频率", kana: "きょう", writing: "今日", meaning: "今天", example: "今日は忙しいです。", exampleZh: "今天很忙。" },
+  { id: "time-03", category: "时间与频率", kana: "きのう", writing: "昨日", meaning: "昨天", example: "昨日、本を読みました。", exampleZh: "昨天读了书。" },
+  { id: "time-04", category: "时间与频率", kana: "あした", writing: "明日", meaning: "明天", example: "明日、学校に行きます。", exampleZh: "明天去学校。" },
+  { id: "time-05", category: "时间与频率", kana: "あさ", writing: "朝", meaning: "早晨", example: "朝、コーヒーを飲みます。", exampleZh: "早晨喝咖啡。" },
+  { id: "time-06", category: "时间与频率", kana: "ひる", writing: "昼", meaning: "中午；白天", example: "昼にパンを食べます。", exampleZh: "中午吃面包。" },
+  { id: "time-07", category: "时间与频率", kana: "よる", writing: "夜", meaning: "晚上", example: "夜、日本語を勉強します。", exampleZh: "晚上学习日语。" },
+  { id: "time-08", category: "时间与频率", kana: "まいにち", writing: "毎日", meaning: "每天", example: "毎日、本を読みます。", exampleZh: "每天读书。" },
+  { id: "time-09", category: "时间与频率", kana: "いつも", writing: "いつも", meaning: "总是", example: "朝はいつもパンです。", exampleZh: "早饭总是吃面包。" },
+  { id: "time-10", category: "时间与频率", kana: "よく", writing: "よく", meaning: "经常；很好地", example: "野菜をよく食べます。", exampleZh: "经常吃蔬菜。" },
+  { id: "time-11", category: "时间与频率", kana: "ときどき", writing: "ときどき", meaning: "有时", example: "ときどき映画を見ます。", exampleZh: "有时看电影。" },
+  { id: "time-12", category: "时间与频率", kana: "あまり", writing: "あまり", meaning: "不太……", example: "肉はあまり食べません。", exampleZh: "不太吃肉。", note: "通常和否定形式搭配。" },
+  { id: "time-13", category: "时间与频率", kana: "ぜんぜん", writing: "全然", meaning: "完全不……", example: "全然分かりません。", exampleZh: "完全不明白。", note: "入门阶段先和否定形式一起记。" },
+
+  // 疑问词
+  { id: "question-01", category: "疑问词", kana: "なに／なん", writing: "何", meaning: "什么", example: "これは何ですか。", exampleZh: "这是什么？", note: "读「なに」还是「なん」取决于后面的词；先整体记住例句。" },
+  { id: "question-02", category: "疑问词", kana: "だれ", writing: "誰", meaning: "谁", example: "あの人は誰ですか。", exampleZh: "那个人是谁？" },
+  { id: "question-03", category: "疑问词", kana: "どこ", writing: "どこ", meaning: "哪里", example: "駅はどこですか。", exampleZh: "车站在哪里？" },
+  { id: "question-04", category: "疑问词", kana: "いつ", writing: "いつ", meaning: "什么时候", example: "いつ日本に来ますか。", exampleZh: "什么时候来日本？" },
+  { id: "question-05", category: "疑问词", kana: "どれ", writing: "どれ", meaning: "哪一个", example: "あなたの傘はどれですか。", exampleZh: "哪一把是你的雨伞？" },
+  { id: "question-06", category: "疑问词", kana: "どんな", writing: "どんな", meaning: "什么样的", example: "どんな料理が好きですか。", exampleZh: "你喜欢什么样的菜？" },
+  { id: "question-07", category: "疑问词", kana: "いくら", writing: "いくら", meaning: "多少钱", example: "これはいくらですか。", exampleZh: "这个多少钱？" },
+  { id: "question-08", category: "疑问词", kana: "いくつ", writing: "いくつ", meaning: "几个；几岁", example: "りんごはいくつありますか。", exampleZh: "有几个苹果？" },
+  { id: "question-09", category: "疑问词", kana: "どう", writing: "どう", meaning: "怎么样；如何", example: "日本語の勉強はどうですか。", exampleZh: "日语学习得怎么样？" },
+  { id: "question-10", category: "疑问词", kana: "どうして", writing: "どうして", meaning: "为什么", example: "どうして日本語を勉強しますか。", exampleZh: "为什么学习日语？" },
+  { id: "question-11", category: "疑问词", kana: "どちら", writing: "どちら", meaning: "哪边；哪里（较礼貌）", example: "お国はどちらですか。", exampleZh: "您来自哪个国家？" },
+  { id: "question-12", category: "疑问词", kana: "なんじ", writing: "何時", meaning: "几点", example: "今、何時ですか。", exampleZh: "现在几点？" },
+
+  // 数字
+  { id: "number-00", category: "数字 0—10", kana: "ゼロ", writing: "〇", meaning: "零", example: "ゼロから始めます。", exampleZh: "从零开始。" },
+  { id: "number-01", category: "数字 0—10", kana: "いち", writing: "一", meaning: "一", example: "一番です。", exampleZh: "是一号。" },
+  { id: "number-02", category: "数字 0—10", kana: "に", writing: "二", meaning: "二", example: "二番です。", exampleZh: "是二号。" },
+  { id: "number-03", category: "数字 0—10", kana: "さん", writing: "三", meaning: "三", example: "三番です。", exampleZh: "是三号。" },
+  { id: "number-04", category: "数字 0—10", kana: "よん", writing: "四", meaning: "四", example: "四番です。", exampleZh: "是四号。", note: "先记「よん」；在时间等词里还会出现「し／よ」。" },
+  { id: "number-05", category: "数字 0—10", kana: "ご", writing: "五", meaning: "五", example: "五番です。", exampleZh: "是五号。" },
+  { id: "number-06", category: "数字 0—10", kana: "ろく", writing: "六", meaning: "六", example: "六番です。", exampleZh: "是六号。" },
+  { id: "number-07", category: "数字 0—10", kana: "なな", writing: "七", meaning: "七", example: "七番です。", exampleZh: "是七号。", note: "先记「なな」；在时间等词里还会出现「しち」。" },
+  { id: "number-08", category: "数字 0—10", kana: "はち", writing: "八", meaning: "八", example: "八番です。", exampleZh: "是八号。" },
+  { id: "number-09", category: "数字 0—10", kana: "きゅう", writing: "九", meaning: "九", example: "九番です。", exampleZh: "是九号。", note: "先记「きゅう」；在部分词语里还会出现「く」。" },
+  { id: "number-10", category: "数字 0—10", kana: "じゅう", writing: "十", meaning: "十", example: "十番です。", exampleZh: "是十号。" },
+];
+(() => {
+  "use strict";
+
+  const DAY = 86400000;
+  const STORAGE_KEY = "kotoba-flashcards-progress-v1";
+  const intervals = [0, DAY, 3 * DAY, 7 * DAY, 14 * DAY, 30 * DAY];
+  const app = document.getElementById("app");
+  const storageAvailable = (() => {
+    try {
+      localStorage.setItem("__kotoba_test__", "1");
+      localStorage.removeItem("__kotoba_test__");
+      return true;
+    } catch (_) {
+      return false;
+    }
+  })();
+
+  let progress = {};
+  if (storageAvailable) {
+    try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (_) { progress = {}; }
+  }
+
+  const state = {
+    category: "全部词卡",
+    mode: "all",
+    order: cards.map((card) => card.id),
+    index: 0,
+    flipped: false,
+  };
+  let ui = null;
+
+  const escapeHtml = (value) => String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+
+  function save() {
+    if (!storageAvailable) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (_) {}
+  }
+
+  function shuffle(input) {
+    const output = [...input];
+    for (let i = output.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [output[i], output[j]] = [output[j], output[i]];
+    }
+    return output;
+  }
+
+  function filteredCards() {
+    const now = Date.now();
+    const categoryCards = state.category === "全部词卡"
+      ? cards
+      : cards.filter((card) => card.category === state.category);
+    let visible = categoryCards;
+    if (state.mode === "due") {
+      visible = categoryCards.filter((card) => progress[card.id]?.reviews > 0 && progress[card.id].due <= now);
+    } else if (state.mode === "new") {
+      visible = categoryCards.filter((card) => !progress[card.id]?.reviews);
+    }
+    const rank = new Map(state.order.map((id, index) => [id, index]));
+    return [...visible].sort((a, b) => (rank.get(a.id) ?? 9999) - (rank.get(b.id) ?? 9999));
+  }
+
+  function stats() {
+    const now = Date.now();
+    return {
+      studied: cards.filter((card) => progress[card.id]?.reviews > 0).length,
+      mastered: cards.filter((card) => progress[card.id]?.level >= 4).length,
+      due: cards.filter((card) => progress[card.id]?.reviews > 0 && progress[card.id].due <= now).length,
+    };
+  }
+
+  function formatDue(timestamp) {
+    const delta = timestamp - Date.now();
+    if (delta <= 0) return "现在复习";
+    if (delta < DAY) return "今天稍后";
+    return `${Math.ceil(delta / DAY)} 天后`;
+  }
+
+  function speak(text) {
+    if (!("speechSynthesis" in window)) {
+      alert("当前浏览器没有可用的语音朗读功能。");
+      return;
+    }
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ja-JP";
+    utterance.rate = 0.82;
+    utterance.pitch = 1;
+    speechSynthesis.speak(utterance);
+  }
+
+  function nextCard() {
+    const deck = filteredCards();
+    if (!deck.length) return;
+    state.index = (state.index + 1) % deck.length;
+    state.flipped = false;
+    renderStudyStage("next");
+    renderProgressPanel(stats());
+  }
+
+  function previousCard() {
+    const deck = filteredCards();
+    if (!deck.length) return;
+    state.index = (state.index - 1 + deck.length) % deck.length;
+    state.flipped = false;
+    renderStudyStage("previous");
+    renderProgressPanel(stats());
+  }
+
+  function rate(rating) {
+    const deck = filteredCards();
+    const card = deck[state.index] || deck[0];
+    if (!card) return;
+    const previous = progress[card.id] || { level: 0, due: 0, reviews: 0, misses: 0 };
+    let level = previous.level;
+    let due = Date.now();
+    let misses = previous.misses;
+    if (rating === "again") {
+      level = Math.max(0, previous.level - 1);
+      due += 10 * 60 * 1000;
+      misses += 1;
+    } else if (rating === "hard") {
+      level = Math.max(1, previous.level);
+      due += DAY;
+    } else {
+      level = Math.min(5, previous.level + 1);
+      due += intervals[level];
+    }
+    progress[card.id] = { level, due, reviews: previous.reviews + 1, misses };
+    save();
+    if (state.mode === "all") state.index = (state.index + 1) % deck.length;
+    state.flipped = false;
+    const summary = stats();
+    updateModeRow(summary);
+    renderStudyStage(rating);
+    renderProgressPanel(summary);
+  }
+
+  function categoryNavigation() {
+    const allButton = `
+      <button class="category-button ${state.category === "全部词卡" ? "active" : ""}" data-category="全部词卡">
+        <span class="category-mark all-mark">全</span>
+        <span class="category-copy"><strong>全部词卡</strong><small>${cards.length} 张</small></span>
+      </button>`;
+    const categories = categoryMeta.map((category) => {
+      const count = cards.filter((card) => card.category === category.name).length;
+      return `
+        <button class="category-button ${state.category === category.name ? "active" : ""}" data-category="${escapeHtml(category.name)}">
+          <span class="category-mark ${category.tone}">${category.mark}</span>
+          <span class="category-copy"><strong>${escapeHtml(category.name)}</strong><small>${count} 张</small></span>
+        </button>`;
+    }).join("");
+    return allButton + categories;
+  }
+
+  function cardMarkup(card, deck, info) {
+    const itemProgress = progress[card.id] || { level: 0, due: 0, reviews: 0, misses: 0 };
+    const writingType = card.writing === card.kana
+      ? "通常使用假名书写"
+      : card.polite
+        ? "辞书形"
+        : "常用汉字表记";
+    const front = `
+      <div class="front-content">
+        <p class="card-prompt">先读出假名，再回忆意思</p>
+        <div class="kana" lang="ja">${escapeHtml(card.kana)}</div>
+        ${card.polite ? '<div class="form-hint">辞书形</div>' : ""}
+        <div class="tap-hint"><kbd>Space</kbd><span>点击或按空格翻面</span></div>
+      </div>`;
+    const back = `
+      <div class="back-content">
+        <p class="card-prompt">翻面答案</p>
+        <div class="dictionary-meta">
+          <span class="dictionary-label">标准日语</span>
+          <span class="pos-badge">${writingType}</span>
+        </div>
+        <div class="writing" lang="ja">${escapeHtml(card.writing)}</div>
+        <div class="reading-row">
+          <span class="reading-label">读音</span>
+          <span lang="ja">${escapeHtml(card.kana)}</span>
+        </div>
+        ${card.polite ? `<div class="polite-form"><span>礼貌体・ます形</span><b lang="ja">${escapeHtml(card.polite)}</b></div>` : ""}
+        <div class="definition-grid">
+          <div class="definition-item chinese">
+            <div class="definition-label">中文释义</div>
+            <p class="meaning">${escapeHtml(card.meaning)}</p>
+          </div>
+        </div>
+        <div class="example-box">
+          <div class="example-label">标准日语例句</div>
+          <div class="example-jp" lang="ja">${escapeHtml(card.example)}</div>
+          <div class="example-zh">${escapeHtml(card.exampleZh)}</div>
+        </div>
+        ${card.note ? `<div class="learning-note">提示：${escapeHtml(card.note)}</div>` : ""}
+      </div>`;
+    const rating = state.flipped ? `
+      <div class="rating-buttons" aria-label="评价记忆情况">
+        <button class="again" data-action="again"><kbd>1</kbd><span>再练</span><small>10 分钟</small></button>
+        <button class="hard" data-action="hard"><kbd>2</kbd><span>模糊</span><small>明天</small></button>
+        <button class="know" data-action="know"><kbd>3</kbd><span>认识</span><small>逐步延长</small></button>
+      </div>` : '<button class="reveal-button" data-action="reveal">显示答案</button>';
+    return `
+      <div class="card-toolbar">
+        <div class="card-position">
+          <span class="mini-mark ${info?.tone || "coral"}">${info?.mark || "語"}</span>
+          <span>${escapeHtml(card.category)}</span><b>${state.index + 1} / ${deck.length}</b>
+        </div>
+        <button class="audio-button" data-action="speak"><span>♪</span> 朗读</button>
+      </div>
+      <div class="flashcard ${state.flipped ? "is-flipped" : ""}" data-action="flip" role="button" tabindex="0" aria-label="翻转词卡">
+        <div class="card-corner top-left"></div><div class="card-corner bottom-right"></div>
+        ${state.flipped ? back : front}
+      </div>
+      <div class="card-navigation">
+        <button class="circle-button" data-action="previous" aria-label="上一张">←</button>
+        ${rating}
+        <button class="circle-button" data-action="next" aria-label="下一张">→</button>
+      </div>
+      <template id="current-card-data" data-id="${card.id}" data-level="${itemProgress.level}"></template>`;
+  }
+
+  function progressMarkup(card, summary) {
+    const item = card ? progress[card.id] || { level: 0, due: 0, reviews: 0, misses: 0 } : null;
+    const completion = Math.round((summary.studied / cards.length) * 100);
+    return `
+      <div class="panel-heading"><span>学习进度</span><strong>${completion}%</strong></div>
+      <div class="progress-track"><span style="width:${completion}%"></span></div>
+      <div class="stat-grid">
+        <div><strong>${summary.studied}</strong><span>已经学习</span></div>
+        <div><strong>${summary.mastered}</strong><span>基本掌握</span></div>
+        <div><strong>${summary.due}</strong><span>今日待复习</span></div>
+      </div>
+      <div class="mastery-card">
+        <div class="panel-heading compact"><span>当前熟练度</span><strong>${item?.level || 0}/5</strong></div>
+        <div class="mastery-dots">${[1,2,3,4,5].map((level) => `<span class="${(item?.level || 0) >= level ? "filled" : ""}"></span>`).join("")}</div>
+        <p>${item?.reviews ? `已练 ${item.reviews} 次 · ${formatDue(item.due)}` : "还没有学习过这张卡"}</p>
+      </div>
+      <div class="tip-card"><div class="tip-icon">光</div><div><strong>记忆原则</strong><p>先读假名并回忆含义，翻面后核对标准日语表记、读音、释义和例句。</p></div></div>
+      <div class="shortcut-card"><strong>键盘快捷键</strong><div><span><kbd>Space</kbd> 翻面</span><span><kbd>←</kbd><kbd>→</kbd> 切换</span></div><div><span><kbd>1</kbd> 再练</span><span><kbd>2</kbd> 模糊</span><span><kbd>3</kbd> 认识</span></div></div>`;
+  }
+
+  function currentDeckState() {
+    const deck = filteredCards();
+    if (state.index >= deck.length) state.index = 0;
+    const card = deck[state.index] || deck[0];
+    const info = categoryMeta.find((item) => item.name === card?.category);
+    return { deck, card, info };
+  }
+
+  function studyStageMarkup() {
+    const { deck, card, info } = currentDeckState();
+    const stage = card ? cardMarkup(card, deck, info) : `
+      <div class="empty-state"><div class="empty-seal">済</div>
+        <h3>${state.mode === "due" ? "今天已经复习完成" : "这一组暂时没有词卡"}</h3>
+        <p>${state.mode === "due" ? "做得好。可以继续学习未学词卡，或切换到全部模式自由练习。" : "换一个分类或学习模式继续。"}</p>
+        <button class="reveal-button" data-mode="all">查看全部词卡</button>
+      </div>`;
+    return stage;
+  }
+
+  function renderStudyStage(focusAction = "") {
+    ui.studyStage.innerHTML = studyStageMarkup();
+    if (!focusAction) return;
+    window.requestAnimationFrame(() => {
+      const preferred = ui.studyStage.querySelector(`[data-action="${focusAction}"]`);
+      const fallback = ui.studyStage.querySelector('[data-action="flip"]');
+      (preferred || fallback)?.focus({ preventScroll: true });
+    });
+  }
+
+  function updateCategorySelection() {
+    ui.categoryNav.querySelectorAll("[data-category]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.category === state.category);
+    });
+  }
+
+  function updateModeRow(summary) {
+    ui.modeRow.querySelectorAll("[data-mode]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.mode === state.mode);
+    });
+    ui.dueCount.textContent = String(summary.due);
+  }
+
+  function renderProgressPanel(summary) {
+    const { card } = currentDeckState();
+    ui.progressPanel.innerHTML = progressMarkup(card, summary);
+  }
+
+  function renderAll() {
+    const summary = stats();
+    updateCategorySelection();
+    updateModeRow(summary);
+    renderStudyStage();
+    renderProgressPanel(summary);
+  }
+
+  function renderShell() {
+
+    app.innerHTML = `
+      <main class="app-shell">
+        <aside class="sidebar">
+          <div class="brand"><div class="brand-seal">語</div><div><p class="brand-kicker">KOTOBA</p><h1>日语入门闪卡</h1></div></div>
+          <nav class="module-switcher" aria-label="日语学习板块">
+            <a href="/japanese/index.html">核心表达</a>
+            <a href="/japanese/words.html" aria-current="page">单词闪卡</a>
+          </nav>
+          <div class="sidebar-label">学习范围</div>
+          <nav class="category-nav" id="category-nav" aria-label="词卡分类">${categoryNavigation()}</nav>
+          <div class="sidebar-foot">
+            <div class="save-status"><span></span>${storageAvailable ? "进度仅保存在本机" : "当前浏览器不支持保存进度"}</div>
+            <button class="text-button danger" data-action="reset">清除学习记录</button>
+          </div>
+        </aside>
+        <section class="workspace">
+          <header class="topbar"><div><p class="eyebrow">五十音之后 · A1 入门</p><h2>今天，再认识几个词。</h2></div>
+            <button class="secondary-button" data-action="shuffle"><span>↝</span> 打乱顺序</button>
+          </header>
+          <div class="mode-row" id="mode-row">
+            <button data-mode="all">全部</button>
+            <button data-mode="due">今日复习 <span id="due-count">0</span></button>
+            <button data-mode="new">未学</button>
+          </div>
+          <div class="study-grid">
+            <section class="study-stage" id="study-stage" aria-live="polite"></section>
+            <aside class="progress-panel" id="progress-panel"></aside>
+          </div>
+          <footer class="source-note">日语学习应用 · 共 ${cards.length} 张词卡 · 学习记录保存在当前浏览器</footer>
+        </section>
+      </main>`;
+
+    ui = {
+      appShell: app.querySelector(".app-shell"),
+      categoryNav: document.querySelector("#category-nav"),
+      modeRow: document.querySelector("#mode-row"),
+      dueCount: document.querySelector("#due-count"),
+      studyStage: document.querySelector("#study-stage"),
+      progressPanel: document.querySelector("#progress-panel"),
+    };
+    renderAll();
+  }
+
+  app.addEventListener("click", (event) => {
+    const target = event.target.closest("button, [data-action], [data-category], [data-mode]");
+    if (!target) return;
+    const category = target.dataset.category;
+    const mode = target.dataset.mode;
+    const action = target.dataset.action;
+    if (category) {
+      state.category = category; state.index = 0; state.flipped = false;
+      const summary = stats();
+      updateCategorySelection();
+      updateModeRow(summary);
+      renderStudyStage();
+      renderProgressPanel(summary);
+      return;
+    }
+    if (mode) {
+      state.mode = mode; state.index = 0; state.flipped = false;
+      const summary = stats();
+      updateModeRow(summary);
+      renderStudyStage();
+      renderProgressPanel(summary);
+      return;
+    }
+    if (action === "flip") { state.flipped = !state.flipped; renderStudyStage("flip"); }
+    else if (action === "reveal") { state.flipped = true; renderStudyStage("flip"); }
+    else if (action === "next") nextCard();
+    else if (action === "previous") previousCard();
+    else if (action === "again" || action === "hard" || action === "know") rate(action);
+    else if (action === "shuffle") {
+      state.order = shuffle(state.order); state.index = 0; state.flipped = false;
+      renderStudyStage("shuffle");
+      renderProgressPanel(stats());
+    }
+    else if (action === "speak") {
+      const deck = filteredCards(); const card = deck[state.index] || deck[0];
+      if (card) speak(state.flipped ? card.example : card.kana);
+    } else if (action === "reset" && confirm("确定要清除全部学习记录吗？这项操作不能撤销。")) {
+      progress = {}; save(); state.mode = "all"; state.index = 0; state.flipped = false; renderAll();
+    }
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.target.matches("input, textarea")) return;
+    if (event.code === "Space") {
+      event.preventDefault();
+      state.flipped = !state.flipped;
+      renderStudyStage("flip");
+    }
+    else if (event.key === "ArrowRight") nextCard();
+    else if (event.key === "ArrowLeft") previousCard();
+    else if (state.flipped && event.key === "1") rate("again");
+    else if (state.flipped && event.key === "2") rate("hard");
+    else if (state.flipped && event.key === "3") rate("know");
+  });
+
+  renderShell();
+
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/japanese/sw.js", { scope: "/japanese" }).catch(() => {});
+    });
+  }
+})();
+
+  </script>
+</body>
+</html>

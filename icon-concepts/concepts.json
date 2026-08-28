@@ -1,0 +1,26 @@
+[
+  {
+    "id": "a-seal",
+    "title": "A  言の印",
+    "subtitle": "印章 × 教材",
+    "note": "沉稳、识别最强"
+  },
+  {
+    "id": "b-open-book",
+    "title": "B  ひらく言葉",
+    "subtitle": "开本 × 学习",
+    "note": "教材感最明确"
+  },
+  {
+    "id": "c-conversation",
+    "title": "C  会話の間",
+    "subtitle": "对话 × 日之丸",
+    "note": "现代、口语属性强"
+  },
+  {
+    "id": "d-flashcard",
+    "title": "D  かな札",
+    "subtitle": "假名 × 卡片",
+    "note": "轻快、小测属性强"
+  }
+]
