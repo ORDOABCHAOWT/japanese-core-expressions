@@ -9,6 +9,26 @@
   <img src="https://img.shields.io/badge/PWA-Offline%20First-5B7D67" alt="Offline-first PWA">
 </p>
 
+## 学习界面
+
+### 从今天真正会用的表达开始
+
+首页按场景组织核心句型，读音、拼句、逐词和替换练习都在同一条学习路径里。
+
+<p align="center"><img src="docs/feature-home.png" alt="日语核心表达课程首页" width="900"></p>
+
+### 把一句话真正拆懂
+
+展开表达即可查看读音、句子结构与逐词解释，不只背答案。
+
+<p align="center"><img src="docs/feature-breakdown.png" alt="日语表达的读音与逐词拆解" width="900"></p>
+
+### 用闪卡巩固高频词
+
+按类别练习 121 张词汇闪卡，让句型里的关键词反复出现。
+
+<p align="center"><img src="docs/feature-flashcards.png" alt="日语学习应用的词汇闪卡" width="900"></p>
+
 ## 学习方式
 
 - **读音**：先建立声音印象。
