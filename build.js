@@ -8,10 +8,33 @@ const distDir = path.join(projectDir, "dist");
 const outputPath = path.join(distDir, "index.html");
 const flashcardsPath = path.join(projectDir, "单词闪卡.html");
 const flashcardsOutputPath = path.join(distDir, "words.html");
+const n3LessonsPath = path.join(projectDir, "content", "n3-lessons.json");
+const n3FlashcardsPath = path.join(projectDir, "content", "n3-flashcards.json");
 
 const raw = fs.readFileSync(sourcePath, "utf8");
 const clientScript = fs.readFileSync(path.join(projectDir, "app-client.js"), "utf8");
-const flashcardsHtml = fs.readFileSync(flashcardsPath, "utf8");
+const n3Lessons = JSON.parse(fs.readFileSync(n3LessonsPath, "utf8"));
+const n3Flashcards = JSON.parse(fs.readFileSync(n3FlashcardsPath, "utf8"));
+const flashcardsTemplate = fs.readFileSync(flashcardsPath, "utf8");
+const flashcardsHtml = flashcardsTemplate.replace(
+  "const n3Cards = [];",
+  `const n3Cards = ${JSON.stringify(n3Flashcards)};`,
+);
+
+if (flashcardsHtml === flashcardsTemplate) {
+  throw new Error("单词闪卡模板缺少 N3 内容注入点。");
+}
+
+const n3CardRequired = ["id", "category", "kana", "writing", "meaning", "example", "exampleZh"];
+const invalidN3Cards = n3Flashcards.filter(
+  (card) => n3CardRequired.some((field) => !card[field]),
+);
+const n3CardIds = new Set(n3Flashcards.map((card) => card.id));
+if (n3Flashcards.length !== 120 || n3CardIds.size !== n3Flashcards.length || invalidN3Cards.length) {
+  throw new Error(
+    `N3 词卡校验未通过：共 ${n3Flashcards.length} 张，唯一 ID ${n3CardIds.size} 个，结构异常 ${invalidN3Cards.length} 张。`,
+  );
+}
 
 const normalized = raw
   .replace(/\r/g, "")
@@ -61,12 +84,23 @@ while ((lessonMatch = lessonPattern.exec(normalized))) {
   lessons.push(lesson);
 }
 
+const baseLessonCount = lessons.length;
+lessons.push(...n3Lessons);
+
 const required = ["reading", "chinese", "formula", "variation", "note"];
 const invalidLessons = lessons.filter(
   (lesson) => required.some((field) => !lesson[field]) || lesson.words.length === 0,
 );
 
-if (lessons.length !== 86 || invalidLessons.length > 0) {
+const lessonNumbers = lessons.map((lesson) => Number(lesson.number));
+const sequentialLessons = lessonNumbers.every((number, index) => number === index + 1);
+if (
+  baseLessonCount !== 86
+  || n3Lessons.length !== 50
+  || lessons.length !== 136
+  || !sequentialLessons
+  || invalidLessons.length > 0
+) {
   throw new Error(
     `内容解析未通过：共 ${lessons.length} 条，结构异常 ${invalidLessons
       .map((lesson) => lesson.number)
@@ -156,7 +190,56 @@ const chapters = [
     description: "请求、许可、禁止、愿望、能力、经历，以及原因说明。",
     accent: "red",
   },
+  {
+    id: "n3-habits",
+    start: 87,
+    end: 96,
+    kana: "習慣・予定",
+    title: "N3 习惯、计划与义务",
+    description: "表达长期习惯、个人计划、既定安排、建议、义务与尝试。",
+    accent: "blue",
+  },
+  {
+    id: "n3-evidence",
+    start: 97,
+    end: 106,
+    kana: "推測・伝聞",
+    title: "N3 推测、传闻与转述",
+    description: "区分可能性、依据判断、外观、传闻、引用与转折。",
+    accent: "gold",
+  },
+  {
+    id: "n3-aspect",
+    start: 107,
+    end: 116,
+    kana: "時間・進行",
+    title: "N3 时间、状态与进程",
+    description: "掌握事前准备、结果状态、动作阶段、期间与同时进行。",
+    accent: "green",
+  },
+  {
+    id: "n3-condition",
+    start: 117,
+    end: 126,
+    kana: "条件・目的",
+    title: "N3 条件、原因与目的",
+    description: "比较「たら・ば・と・なら」，并表达让步、原因、目的与程度。",
+    accent: "red",
+  },
+  {
+    id: "n3-combination",
+    start: 127,
+    end: 136,
+    kana: "複合表現",
+    title: "N3 复合表达与话题组织",
+    description: "描述难易、过度、动作起止、限定，以及正式话题关系。",
+    accent: "blue",
+  },
 ];
+
+const TOTAL_LESSONS = lessons.length;
+const TOTAL_CHAPTERS = chapters.length;
+const TOTAL_FLASHCARDS = 121 + n3Flashcards.length;
 
 const lessonData = lessons.map((lesson) => {
   const number = Number(lesson.number);
@@ -283,8 +366,9 @@ const html = `<!doctype html>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="日语核心表达">
-  <meta name="description" content="86句日语零基础核心表达互动教材：读音、中文、拼句、逐词拆解、替换练习与记忆提示。">
+  <meta name="description" content="${TOTAL_LESSONS}句从零基础到 N3 的日语核心表达互动教材：读音、中文、拼句、逐词拆解、替换练习与记忆提示。">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
+  <link rel="prefetch" href="/japanese/words.html" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=2">
   <title>日语零基础核心表达｜互动教材</title>
@@ -308,6 +392,11 @@ const html = `<!doctype html>
     }
 
     * { box-sizing: border-box; }
+    @view-transition { navigation: auto; }
+    ::view-transition-old(root) { animation: module-fade-out 90ms ease-out both; }
+    ::view-transition-new(root) { animation: module-fade-in 140ms ease-out both; }
+    @keyframes module-fade-out { to { opacity: 0.82; } }
+    @keyframes module-fade-in { from { opacity: 0.82; } }
     html { scroll-behavior: smooth; }
     body {
       margin: 0;
@@ -1437,6 +1526,7 @@ const html = `<!doctype html>
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after { transition: none !important; }
+      ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
     }
 
     @media print {
@@ -1481,7 +1571,7 @@ const html = `<!doctype html>
       <div class="top-progress" aria-live="polite">
         <span class="top-progress-copy">
           <small>学习进度</small>
-          <strong><span id="learned-count">0</span> / 86 句</strong>
+          <strong><span id="learned-count">0</span> / ${TOTAL_LESSONS} 句</strong>
         </span>
         <span class="progress-ring" id="progress-ring" aria-hidden="true"></span>
       </div>
@@ -1491,18 +1581,18 @@ const html = `<!doctype html>
   <main id="main-content">
     <section class="hero" id="top">
       <div class="hero-main">
-        <p class="eyebrow">Beginner's Japanese · Core Expressions</p>
-        <h1>日语零基础<br><em>核心表达</em></h1>
-        <p class="hero-lead">从问候到出行，用「读音—拼句—逐词—替换」四步法掌握真正能开口的日语。点击任意句子，开始逐句拆解。</p>
+        <p class="eyebrow">Beginner to N3 · Core Expressions</p>
+        <h1>日语核心表达<br><em>从零到 N3</em></h1>
+        <p class="hero-lead">从问候、出行一路学到 N3 的推测、条件与复合表达，用「读音—拼句—逐词—替换」四步法把语法变成真正能开口的句子。</p>
         <div class="hero-stats" aria-label="教材概况">
-          <div><strong>86</strong><span>核心表达</span></div>
-          <div><strong>9</strong><span>学习章节</span></div>
+          <div><strong>${TOTAL_LESSONS}</strong><span>核心表达</span></div>
+          <div><strong>${TOTAL_CHAPTERS}</strong><span>学习章节</span></div>
           <div><strong>4</strong><span>拆解步骤</span></div>
         </div>
       </div>
       <div class="hero-side" aria-hidden="true">
         <p class="vertical-title" lang="ja">日本語・基礎表現<span>一文ずつ、身につける。</span></p>
-        <div class="hero-stamp">初級<br>八六句</div>
+        <div class="hero-stamp">初級<br>至 N3</div>
       </div>
     </section>
 
@@ -1514,7 +1604,7 @@ const html = `<!doctype html>
         </label>
         <button class="control-button" id="expand-toggle" type="button">全部展开</button>
         <button class="control-button primary" id="random-review" type="button">开始小测试</button>
-        <div class="search-status" id="search-status" aria-live="polite">显示全部 86 条表达</div>
+        <div class="search-status" id="search-status" aria-live="polite">显示全部 ${TOTAL_LESSONS} 条表达</div>
       </div>
     </div>
 
@@ -1522,7 +1612,7 @@ const html = `<!doctype html>
       <nav class="chapter-nav" aria-label="章节筛选">
         <p>Chapter index</p>
         <button class="chapter-filter all-filter" type="button" data-filter="all" aria-pressed="true">
-          <span class="nav-index">00</span><span class="nav-title">全部章节</span><span class="nav-count">86</span>
+          <span class="nav-index">00</span><span class="nav-title">全部章节</span><span class="nav-count">${TOTAL_LESSONS}</span>
         </button>
         ${chapters
           .map(
@@ -1623,7 +1713,7 @@ const html = `<!doctype html>
 
   <footer class="page-footer">
     <strong lang="ja">毎日、少しずつ。</strong>
-    <p>每天一点点，让 86 句真正成为你的日语。</p>
+    <p>每天一点点，让 ${TOTAL_LESSONS} 句从入门到 N3 真正成为你的日语。</p>
   </footer>
 
   <script>
@@ -1636,7 +1726,7 @@ ${clientScript}
 fs.mkdirSync(distDir, { recursive: true });
 fs.rmSync(path.join(distDir, "words"), { recursive: true, force: true });
 fs.mkdirSync(path.dirname(flashcardsOutputPath), { recursive: true });
-fs.writeFileSync(outputPath, html);
+fs.writeFileSync(outputPath, html.replace(/[ \t]+$/gm, ""));
 fs.writeFileSync(flashcardsOutputPath, flashcardsHtml);
 for (const fileName of [
   "manifest.webmanifest",
@@ -1650,4 +1740,4 @@ for (const fileName of [
 ]) {
   fs.copyFileSync(path.join(publicDir, fileName), path.join(distDir, fileName));
 }
-console.log(`已生成 ${lessons.length} 条核心表达与单词闪卡 PWA：${distDir}`);
+console.log(`已生成 ${lessons.length} 条核心表达与 ${TOTAL_FLASHCARDS} 张单词闪卡 PWA：${distDir}`);

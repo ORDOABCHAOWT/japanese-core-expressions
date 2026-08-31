@@ -43,8 +43,11 @@ if (html.includes('id="sync-dialog"') || html.includes('id="sync-code-input"')) 
 if (!html.includes('data-quiz-mode="kana-input"') || !html.includes('data-quiz-mode="meaning-choice"')) {
   failures.push("缺少假名输入或中文选择模式");
 }
-if (count(/<article class="lesson-shell"/g) !== 86) failures.push("课程卡片不是 86 张");
-if (count(/<section class="chapter-section /g) !== 9) failures.push("章节不是 9 个");
+if (count(/<article class="lesson-shell"/g) !== 136) failures.push("课程卡片不是 136 张");
+if (count(/<section class="chapter-section /g) !== 14) failures.push("章节不是 14 个");
+if (!html.includes('id="chapter-n3-habits"') || !html.includes('id="lesson-136"')) {
+  failures.push("缺少 N3 进阶章节或最后一条表达");
+}
 if (/\*\*[^*]+\*\*/.test(html)) failures.push("仍有未转换的 Markdown");
 if (/<(?:link|img|script)[^>]+(?:src|href)=["']https?:/i.test(html)) {
   failures.push("存在外部资源，不能完全离线使用");
@@ -54,7 +57,7 @@ const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
 const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
 if (duplicateIds.length) failures.push(`存在重复 id：${[...new Set(duplicateIds)].join("、")}`);
 
-for (let index = 1; index <= 86; index += 1) {
+for (let index = 1; index <= 136; index += 1) {
   const number = String(index).padStart(2, "0");
   if (count(new RegExp(`id="lesson-${number}"`, "g")) !== 1) {
     failures.push(`第 ${number} 句缺失或重复`);
@@ -87,11 +90,14 @@ for (const asset of [
   }
 }
 
-if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v8"')) {
+if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v9"')) {
   failures.push("Service Worker 缓存版本未升级");
 }
 if (!serviceWorker.includes('"/japanese/index.html"') || !serviceWorker.includes('"/japanese/words.html"')) {
   failures.push("Service Worker 缺少分模块离线导航回退");
+}
+if (!serviceWorker.includes("const MODULE_PATHS = new Set") || !serviceWorker.includes("const cached = await cache.match")) {
+  failures.push("模块切换未使用缓存优先的快速导航");
 }
 
 if (!flashcardsHtml) {
@@ -100,7 +106,13 @@ if (!flashcardsHtml) {
   if (!flashcardsHtml.startsWith("<!doctype html>")) failures.push("单词闪卡缺少 HTML5 doctype");
   if (!flashcardsHtml.includes('href="/japanese/index.html"')) failures.push("单词闪卡缺少明确的核心表达入口");
   if (!flashcardsHtml.includes('href="/japanese/manifest.webmanifest"')) failures.push("单词闪卡缺少 PWA manifest");
-  if (countFlashcards(flashcardsHtml) !== 121) failures.push("单词闪卡不是 121 张");
+  if (countFlashcards(flashcardsHtml) !== 241) failures.push("单词闪卡不是 241 张");
+  if (!flashcardsHtml.includes('category":"N3 常用动词"') || !flashcardsHtml.includes('category":"连接与副词"')) {
+    failures.push("单词闪卡缺少 N3 进阶分类");
+  }
+  if (!flashcardsHtml.includes('rel="prefetch" href="/japanese/index.html"')) {
+    failures.push("单词闪卡缺少核心表达页预取");
+  }
   if ((flashcardsHtml.match(/<\/head>/g) || []).length !== 1) failures.push("单词闪卡 head 结构异常");
   if ((flashcardsHtml.match(/app\.innerHTML\s*=/g) || []).length !== 1) {
     failures.push("单词闪卡仍可能在交互时整页重建");
@@ -127,8 +139,11 @@ if (failures.length) {
 }
 
 const sizeKb = Math.round(fs.statSync(htmlPath).size / 1024);
-console.log(`验证通过：86 条核心表达、121 张单词闪卡、9 个章节、离线资源与互动脚本正常（主页 ${sizeKb} KB）。`);
+console.log(`验证通过：136 条核心表达、241 张单词闪卡、14 个章节、快速模块切换、离线资源与互动脚本正常（主页 ${sizeKb} KB）。`);
 
 function countFlashcards(value) {
-  return [...value.matchAll(/^  \{ id: "/gm)].length;
+  const start = value.indexOf("const cards = [");
+  const end = value.indexOf("cards.push(...n3Cards);");
+  if (start < 0 || end < 0) return 0;
+  return [...value.slice(start, end).matchAll(/(?:\bid|"id")\s*:/g)].length;
 }

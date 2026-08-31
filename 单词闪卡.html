@@ -9,10 +9,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="日语单词闪卡">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
+  <link rel="prefetch" href="/japanese/index.html" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=2">
-  <title>KOTOBA 日语入门闪卡</title>
-  <meta name="description" content="为刚学完五十音的学习者设计的日语 A1 单词闪卡，共 121 张，支持分类、复习计划与语音朗读。">
+  <title>KOTOBA 日语 N3 进阶闪卡</title>
+  <meta name="description" content="从五十音后入门到 N3 的日语单词闪卡，支持分类、复习计划与语音朗读。">
   <style>
 :root {
   --ink: #17233a;
@@ -31,6 +32,12 @@
 * {
   box-sizing: border-box;
 }
+
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: module-fade-out 90ms ease-out both; }
+::view-transition-new(root) { animation: module-fade-in 140ms ease-out both; }
+@keyframes module-fade-out { to { opacity: 0.82; } }
+@keyframes module-fade-in { from { opacity: 0.82; } }
 
 html {
   background: var(--paper);
@@ -1133,6 +1140,7 @@ kbd {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }
 
   </style>
@@ -1151,6 +1159,12 @@ const categoryMeta = [
   { name: "时间与频率", mark: "時", tone: "cyan" },
   { name: "疑问词", mark: "問", tone: "orange" },
   { name: "数字 0—10", mark: "数", tone: "lime" },
+  { name: "社会与生活", mark: "社", tone: "gold" },
+  { name: "学习与工作", mark: "学", tone: "blue" },
+  { name: "N3 常用动词", mark: "進", tone: "coral" },
+  { name: "感受与判断", mark: "判", tone: "violet" },
+  { name: "连接与副词", mark: "接", tone: "cyan" },
+  { name: "自然与健康", mark: "健", tone: "mint" },
 ];
 const cards = [
   // 生存表达
@@ -1292,6 +1306,8 @@ const cards = [
   { id: "number-09", category: "数字 0—10", kana: "きゅう", writing: "九", meaning: "九", example: "九番です。", exampleZh: "是九号。", note: "先记「きゅう」；在部分词语里还会出现「く」。" },
   { id: "number-10", category: "数字 0—10", kana: "じゅう", writing: "十", meaning: "十", example: "十番です。", exampleZh: "是十号。" },
 ];
+const n3Cards = [];
+cards.push(...n3Cards);
 (() => {
   "use strict";
 
@@ -1597,7 +1613,7 @@ const cards = [
     app.innerHTML = `
       <main class="app-shell">
         <aside class="sidebar">
-          <div class="brand"><div class="brand-seal">語</div><div><p class="brand-kicker">KOTOBA</p><h1>日语入门闪卡</h1></div></div>
+          <div class="brand"><div class="brand-seal">語</div><div><p class="brand-kicker">KOTOBA</p><h1>日语 N3 进阶闪卡</h1></div></div>
           <nav class="module-switcher" aria-label="日语学习板块">
             <a href="/japanese/index.html">核心表达</a>
             <a href="/japanese/words.html" aria-current="page">单词闪卡</a>
@@ -1610,7 +1626,7 @@ const cards = [
           </div>
         </aside>
         <section class="workspace">
-          <header class="topbar"><div><p class="eyebrow">五十音之后 · A1 入门</p><h2>今天，再认识几个词。</h2></div>
+          <header class="topbar"><div><p class="eyebrow">从五十音到 JLPT N3</p><h2>今天，再把表达向前推进一点。</h2></div>
             <button class="secondary-button" data-action="shuffle"><span>↝</span> 打乱顺序</button>
           </header>
           <div class="mode-row" id="mode-row">

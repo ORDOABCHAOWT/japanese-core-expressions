@@ -1,7 +1,7 @@
 {
-  "name": "日语入门学习：核心表达与单词闪卡",
-  "short_name": "日语入门",
-  "description": "86句日语核心表达与121张A1单词闪卡",
+  "name": "日语核心表达：从零基础到 N3",
+  "short_name": "日语到 N3",
+  "description": "136句日语核心表达与241张从入门到 N3 的单词闪卡",
   "id": "/japanese",
   "start_url": "/japanese",
   "scope": "/japanese",

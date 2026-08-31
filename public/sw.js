@@ -1,4 +1,4 @@
-const CACHE_NAME = "nihongo-core-v8";
+const CACHE_NAME = "nihongo-core-v9";
 const PRECACHE = [
   "/japanese",
   "/japanese/index.html",
@@ -8,6 +8,12 @@ const PRECACHE = [
   "/japanese/icon-512.png",
   "/japanese/icon-1024.png",
 ];
+const MODULE_PATHS = new Set([
+  "/japanese",
+  "/japanese/",
+  "/japanese/index.html",
+  "/japanese/words.html",
+]);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -38,6 +44,26 @@ self.addEventListener("fetch", (event) => {
     const offlineFallback = url.pathname.endsWith("/words.html")
       ? "/japanese/words.html"
       : "/japanese/index.html";
+
+    if (MODULE_PATHS.has(url.pathname)) {
+      event.respondWith((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(event.request, { ignoreSearch: true });
+        const networkUpdate = fetch(event.request).then((response) => {
+          if (response.ok) cache.put(event.request, response.clone());
+          return response;
+        });
+
+        if (cached) {
+          event.waitUntil(networkUpdate.catch(() => undefined));
+          return cached;
+        }
+
+        return networkUpdate.catch(() => cache.match(offlineFallback));
+      })());
+      return;
+    }
+
     event.respondWith(
       fetch(event.request)
         .then((response) => {

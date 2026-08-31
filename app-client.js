@@ -178,7 +178,7 @@
     emptyState.classList.toggle("is-visible", visibleCount === 0);
     searchStatus.textContent = query || activeFilter !== "all"
       ? "找到 " + visibleCount + " 条表达 · 小测试将从这些内容中出题"
-      : "显示全部 86 条表达";
+      : "显示全部 " + lessonShells.length + " 条表达";
   }
 
   function scheduleFilters() {

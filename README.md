@@ -4,8 +4,8 @@
 <p align="center">先学真正能开口的句子，再理解它为什么这样说。</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Core%20Phrases-86-294E63" alt="86 core phrases">
-  <img src="https://img.shields.io/badge/Flashcards-121-A84E3D" alt="121 flashcards">
+  <img src="https://img.shields.io/badge/Core%20Phrases-136-294E63" alt="136 core phrases">
+  <img src="https://img.shields.io/badge/Flashcards-241-A84E3D" alt="241 flashcards">
   <img src="https://img.shields.io/badge/PWA-Offline%20First-5B7D67" alt="Offline-first PWA">
 </p>
 
@@ -25,7 +25,7 @@
 
 ### 用闪卡巩固高频词
 
-按类别练习 121 张词汇闪卡，让句型里的关键词反复出现。
+按类别练习 241 张词汇闪卡，从入门高频词扩展到 N3 常用动词、社会生活、学习工作、判断表达、连接副词和健康自然词汇。
 
 <p align="center"><img src="docs/feature-flashcards.png" alt="日语学习应用的词汇闪卡" width="900"></p>
 
@@ -36,7 +36,9 @@
 - **逐词**：看清每个词在句子里的作用。
 - **替换**：替换人物、地点或动作，把一句话真正变成自己的。
 
-课程包含 86 条核心表达、121 张单词闪卡和 9 个章节，支持搜索、小测验与离线学习。
+课程包含 136 条核心表达、241 张单词闪卡和 14 个章节。前 86 条保留零基础学习路径，新增 50 条 N3 进阶表达，覆盖习惯与计划、推测与传闻、时间状态、条件目的及复合表达；支持搜索、小测验与离线学习。
+
+两个学习模块使用缓存优先的页面切换：点击“核心表达”或“单词闪卡”时立即从本地缓存打开，并在后台静默更新内容。
 
 ## 使用与开发
 
