@@ -127,7 +127,9 @@
   }
 
   function questionMarkup() {
-    const { deck, card } = currentQuestion();
+    const current = currentQuestion();
+    const deck = current.deck;
+    const card = state.result?.card || current.card;
     if (!card) {
       const remainingInCategory = categoryCards().filter((item) => !isCardGraduated(item.id)).length;
       return `<div class="empty-state">
@@ -153,13 +155,13 @@
       <p class="answer-help">${state.mode === "jp-zh" ? "多义词填写任意一个标准义项即可。" : "汉字写法、正确假名或词条中的礼貌体均可判定正确。"}</p>`;
 
     return `
-      <div class="question-meta"><strong>${escapeHtml(mode.title)}</strong><span>${escapeHtml(card.category)} · ${state.index + 1} / ${deck.length}</span></div>
+      <div class="question-meta"><strong>${escapeHtml(mode.title)}</strong><span>${escapeHtml(card.category)} · ${state.result?.position || state.index + 1} / ${state.result?.total || deck.length}</span></div>
       <div class="question-body">${promptMarkup(card)}</div>
       ${feedback}`;
   }
 
   function progressMarkup() {
-    const { card } = currentQuestion();
+    const card = state.result?.card || currentQuestion().card;
     if (!card) {
       return `<div class="panel-title"><span>记忆进度</span><strong>今日完成</strong></div>
         <div class="graduation-note">每个词的三种题型分别计时。到期后再答对，才会进入下一段更长的记忆间隔。</div>`;
@@ -248,7 +250,7 @@
   }
 
   function submitAnswer(answer) {
-    const { card } = currentQuestion();
+    const { deck, card } = currentQuestion();
     if (!card) return;
     const passed = TestScheduler.checkAnswer(card, state.mode, answer);
     const current = modeProgress(card.id, state.mode);
@@ -256,7 +258,7 @@
     const existing = cardProgress(card.id);
     progress[card.id] = { ...existing, modes: { ...(existing.modes || {}), [state.mode]: updated } };
     save();
-    state.result = { passed, answer, updated };
+    state.result = { passed, answer, updated, card, position: state.index + 1, total: deck.length };
     state.sessionAnswered += 1;
     if (passed) state.sessionCorrect += 1;
     renderStage();

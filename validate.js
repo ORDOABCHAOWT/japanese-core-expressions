@@ -159,6 +159,9 @@ if (!testHtml) {
   if (!testHtml.includes("10 * MINUTE") || !testHtml.includes("30 * DAY") || !testHtml.includes("cardGraduated")) {
     failures.push("词汇测试缺少完整的艾宾浩斯间隔或三路毕业判定");
   }
+  if (!testHtml.includes("state.result?.card || current.card") || !testHtml.includes("state.result?.card || currentQuestion().card")) {
+    failures.push("词汇测试结果页没有锁定刚刚作答的词");
+  }
   const testCardsMatch = testHtml.match(/const testCards = (\[[\s\S]*?\]);\n/);
   if (!testCardsMatch) {
     failures.push("词汇测试缺少词卡数据");
