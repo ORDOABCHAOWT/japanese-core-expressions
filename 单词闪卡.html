@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日语单词闪卡">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
   <link rel="prefetch" href="/japanese" as="document">
+  <link rel="prefetch" href="/japanese/test" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=2">
   <title>KOTOBA 日语 N3 进阶闪卡</title>
@@ -135,7 +136,7 @@ button:focus-visible,
 
 .module-switcher {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 5px;
   margin: 18px 7px 0;
   padding: 5px;
@@ -1313,6 +1314,8 @@ cards.push(...n3Cards);
 
   const DAY = 86400000;
   const STORAGE_KEY = "kotoba-flashcards-progress-v1";
+  const TEST_STORAGE_KEY = "kotoba-test-progress-v1";
+  const TEST_MODE_IDS = ["audio-ja", "zh-ja", "jp-zh"];
   const intervals = [0, DAY, 3 * DAY, 7 * DAY, 14 * DAY, 30 * DAY];
   const app = document.getElementById("app");
   const storageAvailable = (() => {
@@ -1326,8 +1329,10 @@ cards.push(...n3Cards);
   })();
 
   let progress = {};
+  let testProgress = {};
   if (storageAvailable) {
     try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (_) { progress = {}; }
+    try { testProgress = JSON.parse(localStorage.getItem(TEST_STORAGE_KEY) || "{}"); } catch (_) { testProgress = {}; }
   }
 
   const state = {
@@ -1359,16 +1364,23 @@ cards.push(...n3Cards);
     return output;
   }
 
+  function isTestGraduated(cardId) {
+    const modes = testProgress[cardId]?.modes || {};
+    return TEST_MODE_IDS.every((modeId) => Boolean(modes[modeId]?.graduated));
+  }
+
   function filteredCards() {
     const now = Date.now();
     const categoryCards = state.category === "全部词卡"
       ? cards
       : cards.filter((card) => card.category === state.category);
-    let visible = categoryCards;
+    let visible = state.mode === "graduated"
+      ? categoryCards.filter((card) => isTestGraduated(card.id))
+      : categoryCards.filter((card) => !isTestGraduated(card.id));
     if (state.mode === "due") {
-      visible = categoryCards.filter((card) => progress[card.id]?.reviews > 0 && progress[card.id].due <= now);
+      visible = visible.filter((card) => progress[card.id]?.reviews > 0 && progress[card.id].due <= now);
     } else if (state.mode === "new") {
-      visible = categoryCards.filter((card) => !progress[card.id]?.reviews);
+      visible = visible.filter((card) => !progress[card.id]?.reviews);
     }
     const rank = new Map(state.order.map((id, index) => [id, index]));
     return [...visible].sort((a, b) => (rank.get(a.id) ?? 9999) - (rank.get(b.id) ?? 9999));
@@ -1379,7 +1391,8 @@ cards.push(...n3Cards);
     return {
       studied: cards.filter((card) => progress[card.id]?.reviews > 0).length,
       mastered: cards.filter((card) => progress[card.id]?.level >= 4).length,
-      due: cards.filter((card) => progress[card.id]?.reviews > 0 && progress[card.id].due <= now).length,
+      due: cards.filter((card) => !isTestGraduated(card.id) && progress[card.id]?.reviews > 0 && progress[card.id].due <= now).length,
+      graduated: cards.filter((card) => isTestGraduated(card.id)).length,
     };
   }
 
@@ -1541,7 +1554,7 @@ cards.push(...n3Cards);
       <div class="progress-track"><span style="width:${completion}%"></span></div>
       <div class="stat-grid">
         <div><strong>${summary.studied}</strong><span>已经学习</span></div>
-        <div><strong>${summary.mastered}</strong><span>基本掌握</span></div>
+        <div><strong>${summary.graduated}</strong><span>测试毕业</span></div>
         <div><strong>${summary.due}</strong><span>今日待复习</span></div>
       </div>
       <div class="mastery-card">
@@ -1593,6 +1606,7 @@ cards.push(...n3Cards);
       button.classList.toggle("active", button.dataset.mode === state.mode);
     });
     ui.dueCount.textContent = String(summary.due);
+    ui.graduatedCount.textContent = String(summary.graduated);
   }
 
   function renderProgressPanel(summary) {
@@ -1617,6 +1631,7 @@ cards.push(...n3Cards);
           <nav class="module-switcher" aria-label="日语学习板块">
             <a href="/japanese">核心表达</a>
             <a href="/japanese/words" aria-current="page">单词闪卡</a>
+            <a href="/japanese/test">词汇测试</a>
           </nav>
           <div class="sidebar-label">学习范围</div>
           <nav class="category-nav" id="category-nav" aria-label="词卡分类">${categoryNavigation()}</nav>
@@ -1633,6 +1648,7 @@ cards.push(...n3Cards);
             <button data-mode="all">全部</button>
             <button data-mode="due">今日复习 <span id="due-count">0</span></button>
             <button data-mode="new">未学</button>
+            <button data-mode="graduated">已毕业 <span id="graduated-count">0</span></button>
           </div>
           <div class="study-grid">
             <section class="study-stage" id="study-stage" aria-live="polite"></section>
@@ -1647,6 +1663,7 @@ cards.push(...n3Cards);
       categoryNav: document.querySelector("#category-nav"),
       modeRow: document.querySelector("#mode-row"),
       dueCount: document.querySelector("#due-count"),
+      graduatedCount: document.querySelector("#graduated-count"),
       studyStage: document.querySelector("#study-stage"),
       progressPanel: document.querySelector("#progress-panel"),
     };

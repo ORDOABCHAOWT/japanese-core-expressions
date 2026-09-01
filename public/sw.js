@@ -1,7 +1,8 @@
-const CACHE_NAME = "nihongo-core-v10";
+const CACHE_NAME = "nihongo-core-v11";
 const PRECACHE = [
   "/japanese",
   "/japanese/words",
+  "/japanese/test",
   "/japanese/manifest.webmanifest",
   "/japanese/icon-192.png",
   "/japanese/icon-512.png",
@@ -13,12 +14,14 @@ const MODULE_PATHS = new Set([
   "/japanese/index.html",
   "/japanese/words",
   "/japanese/words.html",
+  "/japanese/test",
+  "/japanese/test.html",
 ]);
 
 function canonicalModulePath(pathname) {
-  return pathname === "/japanese/words" || pathname === "/japanese/words.html"
-    ? "/japanese/words"
-    : "/japanese";
+  if (pathname === "/japanese/words" || pathname === "/japanese/words.html") return "/japanese/words";
+  if (pathname === "/japanese/test" || pathname === "/japanese/test.html") return "/japanese/test";
+  return "/japanese";
 }
 
 self.addEventListener("install", (event) => {

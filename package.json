@@ -6,7 +6,7 @@
   "scripts": {
     "icons": "node scripts/make-icons.js",
     "build": "node build.js",
-    "test": "node validate.js",
+    "test": "node validate.js && node test-algorithm.test.js",
     "sync": "node scripts/sync-deployment.js"
   }
 }

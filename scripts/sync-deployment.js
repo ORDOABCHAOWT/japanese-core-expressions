@@ -15,6 +15,7 @@ const files = [
   "icon-512.png",
   "icon-1024.png",
   "words.html",
+  "test.html",
 ];
 
 fs.mkdirSync(targetDir, { recursive: true });

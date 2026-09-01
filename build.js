@@ -8,6 +8,8 @@ const distDir = path.join(projectDir, "dist");
 const outputPath = path.join(distDir, "index.html");
 const flashcardsPath = path.join(projectDir, "单词闪卡.html");
 const flashcardsOutputPath = path.join(distDir, "words.html");
+const testTemplatePath = path.join(projectDir, "词汇测试.html");
+const testOutputPath = path.join(distDir, "test.html");
 const n3LessonsPath = path.join(projectDir, "content", "n3-lessons.json");
 const n3FlashcardsPath = path.join(projectDir, "content", "n3-flashcards.json");
 
@@ -16,13 +18,31 @@ const clientScript = fs.readFileSync(path.join(projectDir, "app-client.js"), "ut
 const n3Lessons = JSON.parse(fs.readFileSync(n3LessonsPath, "utf8"));
 const n3Flashcards = JSON.parse(fs.readFileSync(n3FlashcardsPath, "utf8"));
 const flashcardsTemplate = fs.readFileSync(flashcardsPath, "utf8");
+const testTemplate = fs.readFileSync(testTemplatePath, "utf8");
+const testAlgorithm = fs.readFileSync(path.join(projectDir, "test-algorithm.js"), "utf8");
+const testClient = fs.readFileSync(path.join(projectDir, "test-client.js"), "utf8");
+const baseCardsMatch = flashcardsTemplate.match(/const cards = (\[[\s\S]*?\n\]);\nconst n3Cards/);
+
+if (!baseCardsMatch) {
+  throw new Error("单词闪卡模板缺少基础词卡数据。" );
+}
+
+const baseFlashcards = new Function(`"use strict"; return ${baseCardsMatch[1]}`)();
+const allFlashcards = [...baseFlashcards, ...n3Flashcards];
 const flashcardsHtml = flashcardsTemplate.replace(
   "const n3Cards = [];",
   `const n3Cards = ${JSON.stringify(n3Flashcards)};`,
 );
+const testHtml = testTemplate
+  .replace("/* TEST_ALGORITHM */", testAlgorithm)
+  .replace("const testCards = [];", `const testCards = ${JSON.stringify(allFlashcards)};`)
+  .replace("/* TEST_CLIENT */", testClient);
 
 if (flashcardsHtml === flashcardsTemplate) {
   throw new Error("单词闪卡模板缺少 N3 内容注入点。");
+}
+if (testHtml === testTemplate || testHtml.includes("/* TEST_CLIENT */")) {
+  throw new Error("词汇测试模板注入失败。" );
 }
 
 const n3CardRequired = ["id", "category", "kana", "writing", "meaning", "example", "exampleZh"];
@@ -239,7 +259,7 @@ const chapters = [
 
 const TOTAL_LESSONS = lessons.length;
 const TOTAL_CHAPTERS = chapters.length;
-const TOTAL_FLASHCARDS = 121 + n3Flashcards.length;
+const TOTAL_FLASHCARDS = baseFlashcards.length + n3Flashcards.length;
 
 const lessonData = lessons.map((lesson) => {
   const number = Number(lesson.number);
@@ -369,6 +389,7 @@ const html = `<!doctype html>
   <meta name="description" content="${TOTAL_LESSONS}句从零基础到 N3 的日语核心表达互动教材：读音、中文、拼句、逐词拆解、替换练习与记忆提示。">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
   <link rel="prefetch" href="/japanese/words" as="document">
+  <link rel="prefetch" href="/japanese/test" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=2">
   <title>日语零基础核心表达｜互动教材</title>
@@ -1562,6 +1583,7 @@ const html = `<!doctype html>
     <nav class="module-switcher" aria-label="日语学习板块">
       <a href="/japanese" aria-current="page">核心表达</a>
       <a href="/japanese/words">单词闪卡</a>
+      <a href="/japanese/test">词汇测试</a>
     </nav>
     <div class="top-actions">
       <button class="sync-trigger" id="sync-trigger" type="button" data-state="syncing" title="正在读取网站上的学习记录…">
@@ -1728,6 +1750,7 @@ fs.rmSync(path.join(distDir, "words"), { recursive: true, force: true });
 fs.mkdirSync(path.dirname(flashcardsOutputPath), { recursive: true });
 fs.writeFileSync(outputPath, html.replace(/[ \t]+$/gm, ""));
 fs.writeFileSync(flashcardsOutputPath, flashcardsHtml);
+fs.writeFileSync(testOutputPath, testHtml);
 for (const fileName of [
   "manifest.webmanifest",
   "sw.js",
