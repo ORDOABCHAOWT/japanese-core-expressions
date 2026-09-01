@@ -1,8 +1,7 @@
-const CACHE_NAME = "nihongo-core-v9";
+const CACHE_NAME = "nihongo-core-v10";
 const PRECACHE = [
   "/japanese",
-  "/japanese/index.html",
-  "/japanese/words.html",
+  "/japanese/words",
   "/japanese/manifest.webmanifest",
   "/japanese/icon-192.png",
   "/japanese/icon-512.png",
@@ -12,8 +11,15 @@ const MODULE_PATHS = new Set([
   "/japanese",
   "/japanese/",
   "/japanese/index.html",
+  "/japanese/words",
   "/japanese/words.html",
 ]);
+
+function canonicalModulePath(pathname) {
+  return pathname === "/japanese/words" || pathname === "/japanese/words.html"
+    ? "/japanese/words"
+    : "/japanese";
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -41,16 +47,15 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (event.request.mode === "navigate") {
-    const offlineFallback = url.pathname.endsWith("/words.html")
-      ? "/japanese/words.html"
-      : "/japanese/index.html";
+    const offlineFallback = canonicalModulePath(url.pathname);
 
     if (MODULE_PATHS.has(url.pathname)) {
       event.respondWith((async () => {
         const cache = await caches.open(CACHE_NAME);
-        const cached = await cache.match(event.request, { ignoreSearch: true });
-        const networkUpdate = fetch(event.request).then((response) => {
-          if (response.ok) cache.put(event.request, response.clone());
+        const canonicalRequest = new Request(offlineFallback, { credentials: "same-origin" });
+        const cached = await cache.match(canonicalRequest, { ignoreSearch: true });
+        const networkUpdate = fetch(canonicalRequest).then((response) => {
+          if (response.ok) cache.put(canonicalRequest, response.clone());
           return response;
         });
 

@@ -368,7 +368,7 @@ const html = `<!doctype html>
   <meta name="apple-mobile-web-app-title" content="日语核心表达">
   <meta name="description" content="${TOTAL_LESSONS}句从零基础到 N3 的日语核心表达互动教材：读音、中文、拼句、逐词拆解、替换练习与记忆提示。">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
-  <link rel="prefetch" href="/japanese/words.html" as="document">
+  <link rel="prefetch" href="/japanese/words" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=2">
   <title>日语零基础核心表达｜互动教材</title>
@@ -1560,8 +1560,8 @@ const html = `<!doctype html>
       </span>
     </a>
     <nav class="module-switcher" aria-label="日语学习板块">
-      <a href="/japanese/index.html" aria-current="page">核心表达</a>
-      <a href="/japanese/words.html">单词闪卡</a>
+      <a href="/japanese" aria-current="page">核心表达</a>
+      <a href="/japanese/words">单词闪卡</a>
     </nav>
     <div class="top-actions">
       <button class="sync-trigger" id="sync-trigger" type="button" data-state="syncing" title="正在读取网站上的学习记录…">

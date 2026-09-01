@@ -31,11 +31,14 @@ if (!html.includes('const SYNC_ENDPOINT = "/japanese/api/progress"')) {
 if (!html.includes('id="sync-trigger"') || !html.includes('id="quiz-dialog"')) {
   failures.push("缺少自动同步状态或小测试窗口");
 }
-if (!html.includes('href="/japanese/words.html"')) {
+if (!html.includes('href="/japanese/words"')) {
   failures.push("核心表达页缺少单词闪卡入口");
 }
-if (!html.includes('href="/japanese/index.html" aria-current="page"')) {
+if (!html.includes('href="/japanese" aria-current="page"')) {
   failures.push("核心表达页缺少明确的当前模块入口");
+}
+if (html.includes('href="/japanese/words.html"') || html.includes('href="/japanese/index.html"')) {
+  failures.push("核心表达页仍使用会触发线上重定向的旧模块地址");
 }
 if (html.includes('id="sync-dialog"') || html.includes('id="sync-code-input"')) {
   failures.push("仍包含同步码配对界面");
@@ -90,13 +93,13 @@ for (const asset of [
   }
 }
 
-if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v9"')) {
+if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v10"')) {
   failures.push("Service Worker 缓存版本未升级");
 }
-if (!serviceWorker.includes('"/japanese/index.html"') || !serviceWorker.includes('"/japanese/words.html"')) {
+if (!serviceWorker.includes('"/japanese"') || !serviceWorker.includes('"/japanese/words"')) {
   failures.push("Service Worker 缺少分模块离线导航回退");
 }
-if (!serviceWorker.includes("const MODULE_PATHS = new Set") || !serviceWorker.includes("const cached = await cache.match")) {
+if (!serviceWorker.includes("const MODULE_PATHS = new Set") || !serviceWorker.includes("canonicalModulePath") || !serviceWorker.includes("const cached = await cache.match")) {
   failures.push("模块切换未使用缓存优先的快速导航");
 }
 
@@ -104,14 +107,17 @@ if (!flashcardsHtml) {
   failures.push("缺少单词闪卡页面");
 } else {
   if (!flashcardsHtml.startsWith("<!doctype html>")) failures.push("单词闪卡缺少 HTML5 doctype");
-  if (!flashcardsHtml.includes('href="/japanese/index.html"')) failures.push("单词闪卡缺少明确的核心表达入口");
+  if (!flashcardsHtml.includes('href="/japanese"')) failures.push("单词闪卡缺少明确的核心表达入口");
   if (!flashcardsHtml.includes('href="/japanese/manifest.webmanifest"')) failures.push("单词闪卡缺少 PWA manifest");
   if (countFlashcards(flashcardsHtml) !== 241) failures.push("单词闪卡不是 241 张");
   if (!flashcardsHtml.includes('category":"N3 常用动词"') || !flashcardsHtml.includes('category":"连接与副词"')) {
     failures.push("单词闪卡缺少 N3 进阶分类");
   }
-  if (!flashcardsHtml.includes('rel="prefetch" href="/japanese/index.html"')) {
+  if (!flashcardsHtml.includes('rel="prefetch" href="/japanese"')) {
     failures.push("单词闪卡缺少核心表达页预取");
+  }
+  if (flashcardsHtml.includes('href="/japanese/words.html"') || flashcardsHtml.includes('href="/japanese/index.html"')) {
+    failures.push("单词闪卡仍使用会触发线上重定向的旧模块地址");
   }
   if ((flashcardsHtml.match(/<\/head>/g) || []).length !== 1) failures.push("单词闪卡 head 结构异常");
   if ((flashcardsHtml.match(/app\.innerHTML\s*=/g) || []).length !== 1) {

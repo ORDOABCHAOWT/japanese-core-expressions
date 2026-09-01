@@ -14,12 +14,12 @@
     {
       "name": "核心表达",
       "short_name": "表达",
-      "url": "/japanese/"
+      "url": "/japanese"
     },
     {
       "name": "单词闪卡",
       "short_name": "闪卡",
-      "url": "/japanese/words.html"
+      "url": "/japanese/words"
     }
   ],
   "icons": [
