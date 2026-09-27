@@ -329,6 +329,7 @@ function syncButton(current) {
 
 function shellTop(current) {
   return `<a class="skip-link" href="#main">跳到学习内容</a>
+  <div class="status-strip" aria-hidden="true"></div>
   <header class="topbar">
     <a class="brand" href="/japanese" aria-label="日语核心表达">
       <span class="seal" lang="ja" aria-hidden="true">言</span>

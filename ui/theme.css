@@ -179,6 +179,9 @@ svg { display: block; flex: none; }
 .empty p { max-width: 380px; color: var(--text-2); font-size: 14px; }
 
 /* ---------- shell ---------- */
+/* iOS 26 主屏应用会在顶边叠一层 Liquid Glass 模糊，把顶栏盖得发虚；只要有一个带背景色的
+   fixed 元素贴着顶边，WebKit 就改用它的颜色。这条色带就是它（iPhone 以外高度为 0）。 */
+.status-strip { position: fixed; z-index: 45; top: 0; right: 0; left: 0; height: env(safe-area-inset-top); background: var(--bg); pointer-events: none; }
 .topbar {
   position: sticky; top: 0; z-index: 40;
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;

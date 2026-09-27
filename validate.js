@@ -98,7 +98,7 @@ for (const asset of [
   }
 }
 
-if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v14"')) {
+if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v15"')) {
   failures.push("Service Worker 缓存版本未升级");
 }
 if (!serviceWorker.includes('"/japanese"') || !serviceWorker.includes('"/japanese/words"') || !serviceWorker.includes('"/japanese/test"')) {
@@ -200,6 +200,7 @@ if (tinyFonts.length) failures.push(`存在小于 12px 的字号：${tinyFonts.j
 for (const [name, page] of Object.entries(pages)) {
   if (!page.includes('class="topbar"') || !page.includes('class="tabbar"')) failures.push(`${name}缺少统一的顶栏或手机标签栏`);
   if (!page.includes("viewport-fit=cover")) failures.push(`${name}缺少全面屏适配`);
+  if (!page.includes('<div class="status-strip" aria-hidden="true"></div>')) failures.push(`${name}缺少 iOS 顶边色带`);
 }
 
 if (failures.length) {
