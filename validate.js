@@ -98,7 +98,7 @@ for (const asset of [
   }
 }
 
-if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v13"')) {
+if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v14"')) {
   failures.push("Service Worker 缓存版本未升级");
 }
 if (!serviceWorker.includes('"/japanese"') || !serviceWorker.includes('"/japanese/words"') || !serviceWorker.includes('"/japanese/test"')) {

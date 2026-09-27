@@ -1,12 +1,12 @@
-const CACHE_NAME = "nihongo-core-v13";
+const CACHE_NAME = "nihongo-core-v14";
 const PRECACHE = [
   "/japanese",
   "/japanese/words",
   "/japanese/test",
   "/japanese/manifest.webmanifest",
-  "/japanese/icon-192.png",
-  "/japanese/icon-512.png",
-  "/japanese/icon-1024.png",
+  "/japanese/icon-192.png?v=3",
+  "/japanese/icon-512.png?v=3",
+  "/japanese/icon-1024.png?v=3",
 ];
 const MODULE_PATHS = new Set([
   "/japanese",

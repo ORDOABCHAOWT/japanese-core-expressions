@@ -71,6 +71,8 @@ npm run sync
 
 默认同步到同级 `word-notebook` 仓库；其他位置可通过 `WORD_NOTEBOOK_DIR` 指定。
 
+App 图标（达摩）的源文件在 `icon/`：`app-icon.svg` 用于桌面和 iOS，`app-icon-maskable.svg` 把图形收进 Android 的安全区。修改后运行 `npm run icons`，会用本机 Chrome 重新生成 `public/` 下的全部尺寸；换图标时记得同时更新页面、manifest 和 Service Worker 里图标链接的 `?v=` 版本号。图标里「言」的轮廓取自 [Zen Maru Gothic](https://github.com/googlefonts/zen-marugothic)（SIL Open Font License 1.1）。
+
 ## 隐私
 
 离线进度保存在浏览器本地。启用跨设备同步时，进度会发送到配套 Worker/D1；公开部署必须保持身份验证，不能暴露共享进度接口。
