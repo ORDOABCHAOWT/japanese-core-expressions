@@ -1,4 +1,4 @@
-const CACHE_NAME = "nihongo-core-v12";
+const CACHE_NAME = "nihongo-core-v13";
 const PRECACHE = [
   "/japanese",
   "/japanese/words",

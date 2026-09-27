@@ -86,7 +86,8 @@ const TestScheduler = (() => {
     if (progress.attempts === 0) return "现在开始";
     const delta = progress.due - Date.now();
     if (delta <= 0) return "现在复习";
-    if (delta < DAY) return `${Math.max(1, Math.ceil(delta / MINUTE))} 分钟后`;
+    if (delta < 60 * MINUTE) return `${Math.max(1, Math.ceil(delta / MINUTE))} 分钟后`;
+    if (delta < DAY) return `${Math.ceil(delta / (60 * MINUTE))} 小时后`;
     return `${Math.ceil(delta / DAY)} 天后`;
   }
 

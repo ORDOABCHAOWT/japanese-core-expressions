@@ -2,12 +2,16 @@
   "use strict";
 
   const STORAGE_KEY = "kotoba-test-progress-v1";
+  const ALL = "全部词卡";
   const modes = [
-    { id: "audio-ja", title: "听音写日语", description: "播放读音，填写日语词", short: "听音" },
-    { id: "zh-ja", title: "中文写日语", description: "看到中文，填写日语词", short: "中→日" },
-    { id: "jp-zh", title: "日语写中文", description: "看到假名和日语，填写中文", short: "日→中" },
+    { id: "audio-ja", title: "听音写日语", short: "听音" },
+    { id: "zh-ja", title: "中文写日语", short: "中→日" },
+    { id: "jp-zh", title: "日语写中文", short: "日→中" },
   ];
+  const { ICON, esc, speak, prefs, savePrefs, openDialog, closeDialog, isTyping, updateBadges } = KotobaUI;
   const app = document.getElementById("app");
+  const sidebar = document.getElementById("sidebar");
+  const picker = document.getElementById("picker");
   const storageAvailable = (() => {
     try {
       localStorage.setItem("__kotoba_test_storage__", "1");
@@ -20,11 +24,13 @@
 
   let progress = {};
   if (storageAvailable) {
-    try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (_) { progress = {}; }
+    try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch (_) { progress = {}; }
   }
+  const categoryNames = [ALL, ...new Set(testCards.map((card) => card.category))];
+  const saved = prefs("test");
   const state = {
-    category: "全部词卡",
-    mode: modes[0].id,
+    category: categoryNames.includes(saved.category) ? saved.category : ALL,
+    mode: modes.some((mode) => mode.id === saved.mode) ? saved.mode : modes[0].id,
     order: testCards.map((card) => card.id),
     index: 0,
     result: null,
@@ -34,15 +40,11 @@
   };
   let ui = null;
 
-  const escapeHtml = (value) => String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-
   function save() {
-    if (!storageAvailable) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (_) {}
+    if (storageAvailable) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (_) {}
+    }
+    updateBadges();
   }
 
   function cardProgress(cardId) {
@@ -57,28 +59,16 @@
     return TestScheduler.cardGraduated(cardProgress(cardId));
   }
 
-  function categoryCards() {
-    return state.category === "全部词卡"
-      ? testCards
-      : testCards.filter((card) => card.category === state.category);
+  function categoryCards(category = state.category) {
+    return category === ALL ? testCards : testCards.filter((card) => card.category === category);
   }
 
-  function dueDeck() {
+  function dueDeck(modeId = state.mode) {
     const rank = new Map(state.order.map((id, index) => [id, index]));
     return categoryCards()
       .filter((card) => !isCardGraduated(card.id))
-      .filter((card) => TestScheduler.isDue(modeProgress(card.id, state.mode)))
+      .filter((card) => TestScheduler.isDue(modeProgress(card.id, modeId)))
       .sort((a, b) => (rank.get(a.id) ?? 9999) - (rank.get(b.id) ?? 9999));
-  }
-
-  function allStats() {
-    const now = Date.now();
-    const graduated = testCards.filter((card) => isCardGraduated(card.id)).length;
-    const due = testCards.filter((card) => {
-      if (isCardGraduated(card.id)) return false;
-      return TestScheduler.isDue(modeProgress(card.id, state.mode), now);
-    }).length;
-    return { graduated, remaining: testCards.length - graduated, due };
   }
 
   function currentQuestion() {
@@ -87,43 +77,42 @@
     return { deck, card: deck[state.index] || null };
   }
 
-  function speak(text) {
-    if (!("speechSynthesis" in window)) {
-      alert("当前浏览器没有可用的日语朗读功能。");
-      return;
-    }
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ja-JP";
-    utterance.rate = 0.78;
-    utterance.pitch = 1;
-    speechSynthesis.speak(utterance);
+  const graduatedCount = (category = ALL) => categoryCards(category).filter((card) => isCardGraduated(card.id)).length;
+
+  /* ---------- markup ---------- */
+  function categoryItems() {
+    return categoryNames.map((name) => {
+      const mark = name === ALL ? "全" : categoryMarks[name] || name.slice(0, 1);
+      return `<button class="side-item" type="button" data-category="${esc(name)}" aria-current="${state.category === name}">
+        <span class="side-mark" lang="ja">${esc(mark)}</span><span class="side-title">${esc(name)}</span><span class="side-meta">${graduatedCount(name)}/${categoryCards(name).length}</span>
+      </button>`;
+    }).join("");
+  }
+
+  function standardAnswer(card) {
+    if (state.mode === "jp-zh") return esc(card.meaning);
+    return card.writing === card.kana
+      ? `<span lang="ja">${esc(card.writing)}</span>`
+      : `<span lang="ja">${esc(card.writing)}</span><small lang="ja">${esc(card.kana)}</small>`;
   }
 
   function promptMarkup(card) {
     if (state.mode === "audio-ja") {
-      return `<div>
-        <p class="question-kicker">不要看答案，先听读音</p>
-        <div class="audio-orb" aria-hidden="true">♪</div>
-        <button class="audio-play" type="button" data-action="play-audio">播放读音</button>
-      </div>`;
+      return `<p class="q-label">听读音，写出日语</p><button class="audio-orb" type="button" data-action="play-audio" aria-label="播放读音" title="播放读音">${ICON.speaker}</button>`;
     }
     if (state.mode === "zh-ja") {
-      return `<div><p class="question-kicker">请写出对应的日语词</p><p class="prompt-main">${escapeHtml(card.meaning)}</p></div>`;
+      return `<p class="q-label">写出对应的日语</p><p class="q-main zh">${esc(card.meaning)}</p>`;
     }
-    return `<div>
-      <p class="question-kicker">请写出这个词的中文意思</p>
-      <p class="prompt-main" lang="ja">${escapeHtml(card.writing)}</p>
-      <div class="prompt-kana" lang="ja">${escapeHtml(card.kana)}</div>
-    </div>`;
+    return `<p class="q-label">写出中文意思</p><p class="q-main" lang="ja">${esc(card.writing)}</p>${card.writing !== card.kana ? `<p class="q-sub" lang="ja">${esc(card.kana)}</p>` : ""}`;
   }
 
-  function standardAnswer(card) {
-    return state.mode === "jp-zh"
-      ? card.meaning
-      : card.writing === card.kana
-        ? card.writing
-        : `${card.writing}（${card.kana}）`;
+  function feedbackMarkup(card, result) {
+    return `<div class="feedback ${result.passed ? "ok" : "bad"}" role="status">
+        <div class="feedback-head">${result.passed ? ICON.check : ICON.wrong}${result.passed ? "回答正确" : "这次没答对，本题型回到第一关"}<span class="when">${result.passed ? `下次：${esc(TestScheduler.nextIntervalLabel(result.updated))}` : "10 分钟后再测"}</span></div>
+        <div class="feedback-answer"><span class="std">${standardAnswer(card)}</span><button class="icon-btn" type="button" data-action="speak-answer" aria-label="朗读" title="朗读">${ICON.speaker}</button></div>
+        ${result.passed ? "" : `<p class="feedback-mine">你的答案：${esc(result.answer || "（未填写）")} · 另外两种题型的进度不受影响</p>`}
+        <p class="feedback-ex"><span lang="ja">${esc(card.example)}</span>${esc(card.exampleZh)}</p>
+      </div>`;
   }
 
   function questionMarkup() {
@@ -131,122 +120,100 @@
     const deck = current.deck;
     const card = state.result?.card || current.card;
     if (!card) {
-      const remainingInCategory = categoryCards().filter((item) => !isCardGraduated(item.id)).length;
-      return `<div class="empty-state">
-        <div class="empty-seal">済</div>
-        <h3>${remainingInCategory ? "当前题型今天已完成" : "这一组已经全部毕业"}</h3>
-        <p>${remainingInCategory ? "按遗忘曲线还没到下一次测试时间。可以切换另外两种题型或其他词汇组。" : "三种测试都已通过，这组词不会再进入普通学习队列。"}</p>
-      </div>`;
+      const remaining = categoryCards().filter((item) => !isCardGraduated(item.id)).length;
+      return `<div class="panel empty"><div class="empty-seal" lang="ja">済</div>
+        <h3>${remaining ? "这个题型今天完成了" : "这一组已经全部毕业"}</h3>
+        <p>${remaining ? "按遗忘曲线还没到下一次测试时间。可以换另外两种题型，或换一个词汇组。" : "三种测试都已通过，这组词不会再进入普通学习队列。"}</p></div>`;
     }
-
-    const mode = modes.find((item) => item.id === state.mode);
-    const feedback = state.result ? `
-      <div class="feedback ${state.result.passed ? "correct" : "incorrect"}" aria-live="polite">
-        <strong>${state.result.passed ? "回答正确" : "回答不正确，本题型从第一关重新巩固"}</strong>
-        <p>你的答案：${escapeHtml(state.result.answer || "（未填写）")}</p>
-        <p class="answer">标准答案：${escapeHtml(standardAnswer(card))}</p>
-        ${state.result.passed ? `<p>下一次：${escapeHtml(TestScheduler.nextIntervalLabel(state.result.updated))}</p>` : "<p>10 分钟后再测，其他题型的进度不受影响。</p>"}
+    const result = state.result;
+    return `<div class="q-card">
+        <div class="q-meta"><span>${esc(card.category)}</span><span>第 ${result?.position || state.index + 1} / ${result?.total || deck.length} 题</span></div>
+        ${promptMarkup(card)}
       </div>
-      <div class="next-row"><button class="primary-button" type="button" data-action="next-question">下一题</button></div>` : `
-      <form class="answer-form" id="answer-form">
-        <input class="answer-input" id="answer-input" name="answer" type="text" autocomplete="off" autocorrect="off" spellcheck="false" lang="${state.mode === "jp-zh" ? "zh-CN" : "ja"}" placeholder="${state.mode === "jp-zh" ? "请输入中文释义" : "请输入日语词"}" aria-label="测试答案" required>
-        <button class="primary-button" type="submit">确认答案</button>
+      <form class="answer-row" id="answer-form">
+        <input class="answer-input${result ? (result.passed ? " is-correct" : " is-wrong") : ""}" id="answer-input" name="answer" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" lang="${state.mode === "jp-zh" ? "zh-CN" : "ja"}" placeholder="${state.mode === "jp-zh" ? "输入中文意思" : "输入日语（汉字或假名）"}" aria-label="你的答案"${result ? ` readonly value="${esc(result.answer)}"` : ""}>
+        ${result ? `<button class="btn btn-primary btn-lg" type="button" id="next-question" data-action="next-question">下一题${ICON.enter}</button>` : '<button class="btn btn-primary btn-lg" type="submit">确认</button>'}
       </form>
-      <p class="answer-help">${state.mode === "jp-zh" ? "多义词填写任意一个标准义项即可。" : "汉字写法、正确假名或词条中的礼貌体均可判定正确。"}</p>`;
-
-    return `
-      <div class="question-meta"><strong>${escapeHtml(mode.title)}</strong><span>${escapeHtml(card.category)} · ${state.result?.position || state.index + 1} / ${state.result?.total || deck.length}</span></div>
-      <div class="question-body">${promptMarkup(card)}</div>
-      ${feedback}`;
+      ${result ? feedbackMarkup(card, result) : `<p class="answer-help"><span>${state.mode === "jp-zh" ? "多义词写出任意一个义项即可" : "汉字写法、正确假名或礼貌体都算对"}</span><span class="kbd-hint"><span class="kbd">Enter</span> 提交</span></p>`}`;
   }
 
   function progressMarkup() {
     const card = state.result?.card || currentQuestion().card;
     if (!card) {
-      return `<div class="panel-title"><span>记忆进度</span><strong>今日完成</strong></div>
-        <div class="graduation-note">每个词的三种题型分别计时。到期后再答对，才会进入下一段更长的记忆间隔。</div>`;
+      return '<section class="panel"><h3>记忆进度</h3><p class="panel-note">每个词的三种题型分别计时。到期后再答对，才会进入下一段更长的间隔。</p></section>';
     }
     const rows = modes.map((mode) => {
       const item = modeProgress(card.id, mode.id);
-      return `<div class="mode-progress-row">
-        <div class="mode-progress-head"><strong>${escapeHtml(mode.short)}</strong><span>${item.graduated ? "毕业" : `${item.stage}/${TestScheduler.TOTAL_CHECKPOINTS} 关`}</span></div>
-        <div class="checkpoint-track">${Array.from({ length: TestScheduler.TOTAL_CHECKPOINTS }, (_, index) => `<i class="${item.stage > index ? "filled" : ""}"></i>`).join("")}</div>
-        <small>${escapeHtml(TestScheduler.nextIntervalLabel(item))}</small>
-      </div>`;
+      return `<div class="mode-row"><div class="mode-row-head"><span>${mode.title}</span><b class="num">${item.graduated ? "毕业" : `${item.stage}/${TestScheduler.TOTAL_CHECKPOINTS}`}</b></div>
+        <div class="dots">${Array.from({ length: TestScheduler.TOTAL_CHECKPOINTS }, (_, index) => `<i class="${item.stage > index ? "on" : ""}"></i>`).join("")}</div>
+        <small>${esc(TestScheduler.nextIntervalLabel(item))}</small></div>`;
     }).join("");
-    return `<div class="panel-title"><span>当前词记忆进度</span><strong>${isCardGraduated(card.id) ? "已毕业" : "三路测试"}</strong></div>
-      <div class="mode-progress">${rows}</div>
-      <div class="graduation-note">三种题型都通过 7 个记忆检查点后，这个词才会毕业并退出普通学习队列。</div>`;
+    return `<section class="panel"><h3>这个词的三路进度</h3><div class="mode-rows">${rows}</div>
+      <p class="panel-note">三种题型都通过 7 个检查点后，这个词才算毕业，并退出普通复习。</p></section>`;
   }
 
-  function categoryNavigation() {
-    const categories = ["全部词卡", ...new Set(testCards.map((card) => card.category))];
-    return categories.map((category) => {
-      const items = category === "全部词卡" ? testCards : testCards.filter((card) => card.category === category);
-      const graduated = items.filter((card) => isCardGraduated(card.id)).length;
-      const mark = category === "全部词卡" ? "全" : category.slice(0, 1);
-      return `<button class="category-button ${state.category === category ? "active" : ""}" type="button" data-category="${escapeHtml(category)}">
-        <span class="category-mark">${escapeHtml(mark)}</span>
-        <span class="category-copy"><strong>${escapeHtml(category)}</strong><small>${graduated}/${items.length} 毕业</small></span>
-      </button>`;
-    }).join("");
+  function modeButtons() {
+    return modes.map((mode) => `<button type="button" data-mode="${mode.id}" aria-pressed="${state.mode === mode.id}"><span class="long">${mode.title}</span><span class="short">${mode.short}</span><span class="pill neutral">${dueDeck(mode.id).length}</span></button>`).join("");
   }
 
-  function renderStage() {
+  /* ---------- rendering ---------- */
+  function renderSidebar() {
+    sidebar.innerHTML = `<p class="side-label"><span>词汇组</span><span>毕业 / 总数</span></p>
+      <nav class="side-list" aria-label="测试分类">${categoryItems()}</nav>
+      <div class="side-foot"><span>${storageAvailable ? "测试进度保存在当前浏览器" : "当前浏览器不能保存进度"}</span><button type="button" data-action="reset">清除测试记录…</button></div>`;
+  }
+
+  function renderHeader() {
+    ui.eyebrow.textContent = `词汇测试 · 已毕业 ${graduatedCount()} 个`;
+    ui.title.textContent = state.category;
+    ui.titleShort.textContent = state.category;
+    ui.score.hidden = !state.sessionAnswered;
+    ui.score.textContent = `本轮 ${state.sessionCorrect} / ${state.sessionAnswered} 正确`;
+  }
+
+  function renderStage({ focus = true } = {}) {
     ui.stage.innerHTML = questionMarkup();
     ui.progress.innerHTML = progressMarkup();
-    const stats = allStats();
-    ui.graduatedCount.textContent = String(stats.graduated);
-    ui.dueCount.textContent = String(stats.due);
-    ui.sessionScore.textContent = state.sessionAnswered ? `${state.sessionCorrect}/${state.sessionAnswered}` : "0";
-    ui.categoryNav.innerHTML = categoryNavigation();
-    window.requestAnimationFrame(() => ui.stage.querySelector("#answer-input")?.focus({ preventScroll: true }));
+    ui.modeTabs.innerHTML = modeButtons();
+    renderHeader();
+    if (focus) {
+      setTimeout(() => (state.result ? document.getElementById("next-question") : document.getElementById("answer-input"))?.focus({ preventScroll: true }), 0);
+    }
   }
 
   function renderShell() {
-    const stats = allStats();
-    app.innerHTML = `<main class="app-shell">
-      <aside class="sidebar">
-        <div class="brand"><div class="brand-seal">試</div><div><p>KOTOBA TEST</p><h1>日语词汇测试</h1></div></div>
-        <nav class="module-switcher" aria-label="日语学习板块">
-          <a href="/japanese">核心表达</a>
-          <a href="/japanese/words">单词闪卡</a>
-          <a href="/japanese/test" aria-current="page">词汇测试</a>
-        </nav>
-        <div class="sidebar-label">按词汇组测试</div>
-        <nav class="category-nav" id="category-nav" aria-label="测试分类">${categoryNavigation()}</nav>
-        <div class="sidebar-foot">
-          <div class="save-status">${storageAvailable ? "测试进度保存在当前浏览器" : "当前浏览器不支持保存进度"}</div>
-          <button class="danger-button" type="button" data-action="reset">清除测试记录</button>
+    app.innerHTML = `
+      <header class="page-head">
+        <div class="page-title">
+          <p class="eyebrow" id="test-eyebrow"></p>
+          <h1><span class="title-text" id="test-title"></span><button class="title-btn" type="button" data-action="picker"><span id="test-title-short"></span>${ICON.down}</button></h1>
         </div>
-      </aside>
-      <section class="workspace">
-        <header class="topbar">
-          <div><p class="eyebrow">Ebbinghaus · Three-way Recall</p><h2>三种回忆，都通过才算真正掌握。</h2></div>
-          <div class="top-summary">
-            <div class="summary-chip"><strong id="graduated-count">${stats.graduated}</strong><span>已经毕业</span></div>
-            <div class="summary-chip"><strong id="due-count">${stats.due}</strong><span>本题型待测</span></div>
-            <div class="summary-chip"><strong id="session-score">0</strong><span>本轮答对</span></div>
-          </div>
-        </header>
-        <div class="mode-tabs" id="mode-tabs">${modes.map((mode) => `<button class="mode-tab ${state.mode === mode.id ? "active" : ""}" type="button" data-mode="${mode.id}"><strong>${mode.title}</strong><small>${mode.description}</small></button>`).join("")}</div>
-        <div class="test-layout">
-          <section class="test-stage" id="test-stage" aria-live="polite"></section>
-          <aside class="progress-panel" id="progress-panel"></aside>
-        </div>
-        <footer class="source-note">共 ${testCards.length} 张词卡 · 10 分钟、1 天、3 天、7 天、14 天、30 天间隔复习</footer>
-      </section>
-    </main>`;
+        <div class="page-actions"><span class="tag num" id="session-score" hidden></span></div>
+      </header>
+      <div class="seg mode-seg" id="mode-tabs" role="group" aria-label="测试方式"></div>
+      <div class="study-layout">
+        <section class="stage" id="test-stage" aria-label="测试题"></section>
+        <aside class="side-panel" id="progress-panel" aria-label="记忆进度"></aside>
+      </div>`;
     ui = {
-      categoryNav: document.querySelector("#category-nav"),
-      modeTabs: document.querySelector("#mode-tabs"),
-      stage: document.querySelector("#test-stage"),
-      progress: document.querySelector("#progress-panel"),
-      graduatedCount: document.querySelector("#graduated-count"),
-      dueCount: document.querySelector("#due-count"),
-      sessionScore: document.querySelector("#session-score"),
+      eyebrow: document.getElementById("test-eyebrow"),
+      title: document.getElementById("test-title"),
+      titleShort: document.getElementById("test-title-short"),
+      score: document.getElementById("session-score"),
+      modeTabs: document.getElementById("mode-tabs"),
+      stage: document.getElementById("test-stage"),
+      progress: document.getElementById("progress-panel"),
     };
-    renderStage();
+    renderSidebar();
+    // 手机上不在打开页面时就弹出键盘
+    renderStage({ focus: window.matchMedia("(hover: hover)").matches });
+  }
+
+  /* ---------- actions ---------- */
+  function playAudio(card) {
+    const orb = app.querySelector(".audio-orb");
+    orb?.classList.add("is-playing");
+    speak(card.kana, () => orb?.classList.remove("is-playing"));
   }
 
   function submitAnswer(answer) {
@@ -262,6 +229,7 @@
     state.sessionAnswered += 1;
     if (passed) state.sessionCorrect += 1;
     renderStage();
+    renderSidebar();
   }
 
   function nextQuestion() {
@@ -271,45 +239,80 @@
     else state.index = 0;
     renderStage();
     const { card } = currentQuestion();
-    if (state.mode === "audio-ja" && state.audioEnabled && card) setTimeout(() => speak(card.kana), 80);
+    if (state.mode === "audio-ja" && state.audioEnabled && card) setTimeout(() => playAudio(card), 120);
   }
 
+  function selectCategory(name) {
+    state.category = name;
+    state.index = 0;
+    state.result = null;
+    state.audioEnabled = true;
+    savePrefs("test", { category: name });
+    renderSidebar();
+    renderStage();
+    const { card } = currentQuestion();
+    if (state.mode === "audio-ja" && card) setTimeout(() => playAudio(card), 120);
+  }
+
+  function selectMode(mode) {
+    state.mode = mode;
+    state.index = 0;
+    state.result = null;
+    state.audioEnabled = true;
+    savePrefs("test", { mode });
+    renderStage();
+    const { card } = currentQuestion();
+    if (mode === "audio-ja" && card) setTimeout(() => playAudio(card), 120);
+  }
+
+  function openPicker() {
+    document.getElementById("picker-title").textContent = "选择词汇组";
+    document.getElementById("picker-list").innerHTML = categoryItems();
+    openDialog(picker);
+  }
+
+  /* ---------- events ---------- */
   app.addEventListener("submit", (event) => {
     if (event.target.id !== "answer-form") return;
     event.preventDefault();
-    const answer = new FormData(event.target).get("answer")?.toString() || "";
+    if (state.result) {
+      nextQuestion();
+      return;
+    }
+    const input = event.target.elements.answer;
+    const answer = input.value || "";
+    if (!answer.trim()) {
+      input.focus();
+      return;
+    }
     submitAnswer(answer);
   });
 
-  app.addEventListener("click", (event) => {
+  document.addEventListener("click", (event) => {
     const target = event.target.closest("button, [data-category], [data-mode], [data-action]");
     if (!target) return;
-    const category = target.dataset.category;
-    const mode = target.dataset.mode;
-    const action = target.dataset.action;
+    const { category, mode, action } = target.dataset;
     if (category) {
-      state.category = category;
-      state.index = 0;
-      state.result = null;
-      state.audioEnabled = true;
-      renderStage();
-      const { card } = currentQuestion();
-      if (state.mode === "audio-ja" && card) setTimeout(() => speak(card.kana), 80);
-    } else if (mode) {
-      state.mode = mode;
-      state.index = 0;
-      state.result = null;
-      state.audioEnabled = true;
-      ui.modeTabs.querySelectorAll("[data-mode]").forEach((button) => button.classList.toggle("active", button.dataset.mode === mode));
-      renderStage();
-      const { card } = currentQuestion();
-      if (mode === "audio-ja" && card) setTimeout(() => speak(card.kana), 80);
-    } else if (action === "play-audio") {
+      if (target.closest("#picker")) closeDialog(picker);
+      selectCategory(category);
+      return;
+    }
+    if (mode) {
+      selectMode(mode);
+      return;
+    }
+    if (action === "play-audio") {
       state.audioEnabled = true;
       const { card } = currentQuestion();
-      if (card) speak(card.kana);
+      if (card) playAudio(card);
+      document.getElementById("answer-input")?.focus({ preventScroll: true });
     } else if (action === "next-question") {
       nextQuestion();
+    } else if (action === "speak-answer") {
+      const card = state.result?.card;
+      if (card) speak(card.kana);
+    } else if (action === "picker") {
+      openPicker();
     } else if (action === "reset" && confirm("确定清除全部词汇测试记录吗？这会让所有词重新开始三种测试。")) {
       progress = {};
       save();
@@ -317,15 +320,22 @@
       state.result = null;
       state.sessionAnswered = 0;
       state.sessionCorrect = 0;
+      renderSidebar();
       renderStage();
     }
   });
 
   window.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && state.result && !event.target.matches("input, textarea")) nextQuestion();
+    if (event.isComposing || event.keyCode === 229) return;
+    if (document.querySelector("dialog[open]")) return;
+    if (event.key === "Enter" && state.result && !event.target.matches("input, textarea, button")) {
+      event.preventDefault();
+      nextQuestion();
+    }
   });
 
   renderShell();
+  KotobaUI.init();
 
   if ("serviceWorker" in navigator && location.protocol === "https:") {
     window.addEventListener("load", () => {

@@ -49,8 +49,9 @@ if (html.includes('id="sync-dialog"') || html.includes('id="sync-code-input"')) 
 if (!html.includes('data-quiz-mode="kana-input"') || !html.includes('data-quiz-mode="meaning-choice"')) {
   failures.push("缺少假名输入或中文选择模式");
 }
-if (count(/<article class="lesson-shell"/g) !== 136) failures.push("课程卡片不是 136 张");
-if (count(/<section class="chapter-section /g) !== 14) failures.push("章节不是 14 个");
+if (count(/<button class="phrase-row"/g) !== 136) failures.push("表达列表不是 136 条");
+if (count(/<template id="lesson-tpl-/g) !== 136) failures.push("逐句拆解不是 136 份");
+if (count(/<ol class="phrase-list"/g) !== 14) failures.push("章节不是 14 个");
 if (!html.includes('id="chapter-n3-habits"') || !html.includes('id="lesson-136"')) {
   failures.push("缺少 N3 进阶章节或最后一条表达");
 }
@@ -97,7 +98,7 @@ for (const asset of [
   }
 }
 
-if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v12"')) {
+if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v13"')) {
   failures.push("Service Worker 缓存版本未升级");
 }
 if (!serviceWorker.includes('"/japanese"') || !serviceWorker.includes('"/japanese/words"') || !serviceWorker.includes('"/japanese/test"')) {
@@ -184,13 +185,30 @@ if (!testHtml) {
   }
 }
 
+// 三个模块必须共用同一套主题：同样的字体角色、配色和最小字号
+const pages = { 核心表达: html, 单词闪卡: flashcardsHtml, 词汇测试: testHtml };
+const themes = Object.entries(pages).map(([name, page]) => [name, ((page.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "").trim()]);
+if (!themes[0][1] || new Set(themes.map(([, css]) => css)).size !== 1) {
+  failures.push("三个模块没有使用同一套主题样式");
+}
+const themeCss = themes[0][1];
+if (!themeCss.includes(":lang(ja) { font-family: var(--font-ja); }")) failures.push("缺少日文内容专用字体规则");
+const tinyFonts = [...themeCss.matchAll(/font(?:-size)?:[^;{}]*?(\d+(?:\.\d+)?)px/g)]
+  .filter((match) => Number(match[1]) < 12)
+  .map((match) => match[0]);
+if (tinyFonts.length) failures.push(`存在小于 12px 的字号：${tinyFonts.join("；")}`);
+for (const [name, page] of Object.entries(pages)) {
+  if (!page.includes('class="topbar"') || !page.includes('class="tabbar"')) failures.push(`${name}缺少统一的顶栏或手机标签栏`);
+  if (!page.includes("viewport-fit=cover")) failures.push(`${name}缺少全面屏适配`);
+}
+
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
 
 const sizeKb = Math.round(fs.statSync(htmlPath).size / 1024);
-console.log(`验证通过：136 条核心表达、241 张单词闪卡、三路艾宾浩斯词汇测试、14 个章节、快速模块切换与离线资源正常（主页 ${sizeKb} KB）。`);
+console.log(`验证通过：136 条核心表达、241 张单词闪卡、三路艾宾浩斯词汇测试、14 个章节、统一主题、快速模块切换与离线资源正常（主页 ${sizeKb} KB）。`);
 
 function countFlashcards(value) {
   const start = value.indexOf("const cards = [");

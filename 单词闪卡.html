@@ -2,1154 +2,33 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#17233a">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121619" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="日语单词闪卡">
+  <meta name="apple-mobile-web-app-title" content="日语核心表达">
+  <meta name="description" content="从五十音后入门到 N3 的日语单词闪卡，支持分类、复习计划与语音朗读。">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
   <link rel="prefetch" href="/japanese" as="document">
   <link rel="prefetch" href="/japanese/test" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=2">
-  <title>KOTOBA 日语 N3 进阶闪卡</title>
-  <meta name="description" content="从五十音后入门到 N3 的日语单词闪卡，支持分类、复习计划与语音朗读。">
+  <title>单词闪卡｜日语核心表达</title>
   <style>
-:root {
-  --ink: #17233a;
-  --muted: #6d778b;
-  --paper: #fbfaf6;
-  --paper-deep: #f3f0e8;
-  --navy: #17233a;
-  --navy-soft: #233252;
-  --coral: #e46954;
-  --gold: #d7a33d;
-  --line: #e4e0d7;
-  --white: #ffffff;
-  --shadow: 0 16px 42px rgba(26, 35, 56, 0.1);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-@view-transition { navigation: auto; }
-::view-transition-old(root) { animation: module-fade-out 90ms ease-out both; }
-::view-transition-new(root) { animation: module-fade-in 140ms ease-out both; }
-@keyframes module-fade-out { to { opacity: 0.82; } }
-@keyframes module-fade-in { from { opacity: 0.82; } }
-
-html {
-  background: var(--paper);
-}
-
-body {
-  margin: 0;
-  background:
-    radial-gradient(circle at 73% 13%, rgba(228, 105, 84, 0.08), transparent 24rem),
-    linear-gradient(135deg, #fbfaf6 0%, #f8f6ef 100%);
-  color: var(--ink);
-  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Noto Sans CJK JP", sans-serif;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-button {
-  color: inherit;
-  font: inherit;
-}
-
-button,
-a,
-[role="button"] {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:focus-visible,
-[role="button"]:focus-visible {
-  outline: 3px solid rgba(228, 105, 84, 0.35);
-  outline-offset: 3px;
-}
-
-.app-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 276px minmax(0, 1fr);
-  isolation: isolate;
-}
-
-.sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  padding: 30px 20px 22px;
-  color: #f7f5ef;
-  background:
-    radial-gradient(circle at 10% 12%, rgba(255, 255, 255, 0.08), transparent 12rem),
-    linear-gradient(180deg, #1a2741 0%, #131d31 100%);
-  box-shadow: 8px 0 34px rgba(15, 24, 41, 0.09);
-  z-index: 2;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 0 8px 28px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.brand-seal {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  color: white;
-  background: var(--coral);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2), 0 8px 18px rgba(0, 0, 0, 0.18);
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-size: 25px;
-  font-weight: 700;
-  transform: rotate(-2deg);
-}
-
-.brand-kicker {
-  margin: 0 0 3px;
-  color: #f2b0a3;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.28em;
-}
-
-.brand h1 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 750;
-  letter-spacing: 0.03em;
-}
-
-.module-switcher {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  margin: 18px 7px 0;
-  padding: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.module-switcher a {
-  min-height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  color: #aeb8c9;
-  font-size: 11px;
-  font-weight: 750;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.module-switcher a:hover { color: white; }
-
-.module-switcher a:focus-visible {
-  outline: 3px solid rgba(242, 176, 163, 0.42);
-  outline-offset: 2px;
-}
-
-.module-switcher a[aria-current="page"] {
-  color: var(--navy);
-  background: #fbfaf6;
-  box-shadow: 0 7px 18px rgba(7, 13, 24, 0.18);
-}
-
-.sidebar-label {
-  margin: 24px 10px 10px;
-  color: #8e9ab0;
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.14em;
-}
-
-.category-nav {
-  display: grid;
-  gap: 4px;
-}
-
-.category-button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 12px;
-  color: #cad1de;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
-}
-
-.category-button:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.07);
-  transform: translateX(2px);
-}
-
-.category-button.active {
-  color: white;
-  background: rgba(255, 255, 255, 0.11);
-  box-shadow: inset 3px 0 0 var(--coral);
-}
-
-.category-mark,
-.mini-mark {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  color: white;
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-}
-
-.category-copy {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.category-copy strong {
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.category-copy small {
-  color: #7f8ba1;
-  font-size: 10px;
-  white-space: nowrap;
-}
-
-.category-button.active .category-copy small {
-  color: #adb7c7;
-}
-
-.all-mark { background: #67748c; }
-.coral { background: #df6b57; }
-.gold { background: #c89634; }
-.mint { background: #4d9d83; }
-.rose { background: #c65d78; }
-.blue { background: #4b7fc1; }
-.violet { background: #7869b1; }
-.cyan { background: #3b91a6; }
-.orange { background: #c77b3c; }
-.lime { background: #79904e; }
-
-.sidebar-foot {
-  margin-top: auto;
-  padding: 22px 10px 0;
-}
-
-.save-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #929db0;
-  font-size: 11px;
-}
-
-.save-status span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #77b79b;
-  box-shadow: 0 0 0 4px rgba(119, 183, 155, 0.1);
-}
-
-.text-button {
-  margin-top: 10px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.text-button.danger { color: #a4adbd; }
-.text-button.danger:hover { color: #f09b8a; }
-
-.workspace {
-  min-width: 0;
-  padding: 36px clamp(28px, 4vw, 64px) 24px;
-}
-
-.topbar {
-  max-width: 1160px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.eyebrow {
-  margin: 0 0 7px;
-  color: var(--coral);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-}
-
-.topbar h2 {
-  margin: 0;
-  color: var(--navy);
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Songti SC", serif;
-  font-size: clamp(25px, 3vw, 34px);
-  font-weight: 650;
-  letter-spacing: 0.02em;
-}
-
-.secondary-button,
-.audio-button,
-.reveal-button,
-.circle-button {
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.78);
-  cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
-}
-
-.secondary-button:hover,
-.audio-button:hover,
-.reveal-button:hover,
-.circle-button:hover {
-  transform: translateY(-1px);
-  border-color: #cec8ba;
-  box-shadow: 0 8px 20px rgba(35, 45, 65, 0.08);
-}
-
-.secondary-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 15px;
-  border-radius: 12px;
-  color: #4a566d;
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.secondary-button span {
-  color: var(--coral);
-  font-size: 20px;
-  line-height: 0;
-}
-
-.mode-row {
-  max-width: 1160px;
-  margin: 28px auto 24px;
-  display: flex;
-  gap: 5px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
-}
-
-.mode-row button {
-  position: relative;
-  padding: 8px 14px;
-  border: 0;
-  border-radius: 10px;
-  color: #758096;
-  background: transparent;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.mode-row button:hover { color: var(--ink); }
-
-.mode-row button.active {
-  color: var(--ink);
-  background: white;
-  box-shadow: 0 5px 16px rgba(27, 38, 60, 0.07);
-}
-
-.mode-row button.active::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -14px;
-  width: 24px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--coral);
-  transform: translateX(-50%);
-}
-
-.mode-row button span {
-  margin-left: 5px;
-  padding: 1px 6px;
-  border-radius: 8px;
-  color: white;
-  background: var(--coral);
-  font-size: 9px;
-}
-
-.study-grid {
-  max-width: 1160px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(500px, 1fr) 280px;
-  gap: clamp(28px, 4vw, 58px);
-  align-items: start;
-}
-
-.study-stage {
-  min-width: 0;
-}
-
-.card-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 11px;
-}
-
-.card-position {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: #687389;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.card-position b {
-  margin-left: 3px;
-  color: #a2a9b6;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.mini-mark {
-  width: 25px;
-  height: 25px;
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-.audio-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 11px;
-  border-radius: 10px;
-  color: #677287;
-  font-size: 11px;
-  font-weight: 650;
-}
-
-.audio-button span {
-  color: var(--coral);
-  font-size: 15px;
-}
-
-.flashcard {
-  position: relative;
-  min-height: 430px;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  padding: clamp(34px, 6vw, 66px);
-  border: 1px solid #e2ded3;
-  border-radius: 25px;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72)),
-    repeating-linear-gradient(0deg, transparent 0 31px, rgba(28, 42, 65, 0.025) 31px 32px),
-    #fffefa;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  user-select: none;
-  contain: layout paint style;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.flashcard:hover {
-  border-color: #d6d0c3;
-  box-shadow: 0 20px 48px rgba(26, 35, 56, 0.12);
-}
-
-.flashcard.is-flipped {
-  background:
-    radial-gradient(circle at 92% 13%, rgba(228, 105, 84, 0.09), transparent 13rem),
-    linear-gradient(rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.84)),
-    repeating-linear-gradient(0deg, transparent 0 31px, rgba(28, 42, 65, 0.025) 31px 32px),
-    #fffefa;
-}
-
-.flashcard.is-flipped {
-  min-height: 540px;
-  padding-top: 38px;
-  padding-bottom: 38px;
-}
-
-.card-corner {
-  position: absolute;
-  width: 54px;
-  height: 54px;
-  pointer-events: none;
-}
-
-.card-corner.top-left {
-  top: 18px;
-  left: 18px;
-  border-top: 2px solid rgba(228, 105, 84, 0.27);
-  border-left: 2px solid rgba(228, 105, 84, 0.27);
-  border-radius: 12px 0 0;
-}
-
-.card-corner.bottom-right {
-  right: 18px;
-  bottom: 18px;
-  border-right: 2px solid rgba(228, 105, 84, 0.27);
-  border-bottom: 2px solid rgba(228, 105, 84, 0.27);
-  border-radius: 0 0 12px;
-}
-
-.front-content,
-.back-content {
-  width: 100%;
-  text-align: center;
-}
-
-.card-prompt {
-  margin: 0 0 38px;
-  color: #98a0ad;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.16em;
-}
-
-.kana {
-  color: var(--navy);
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK JP", serif;
-  font-size: clamp(48px, 7vw, 78px);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
-.form-hint {
-  display: inline-block;
-  margin-top: 19px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: #a07f54;
-  background: #f6eddd;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.tap-hint {
-  margin-top: 56px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 9px;
-  color: #a0a7b2;
-  font-size: 10px;
-}
-
-kbd {
-  display: inline-grid;
-  min-width: 21px;
-  height: 20px;
-  place-items: center;
-  padding: 0 5px;
-  border: 1px solid #d8d4ca;
-  border-bottom-width: 2px;
-  border-radius: 5px;
-  color: #7b8494;
-  background: #fff;
-  font-family: inherit;
-  font-size: 9px;
-  font-weight: 750;
-}
-
-.back-content .card-prompt {
-  margin-bottom: 14px;
-}
-
-.dictionary-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.dictionary-label,
-.pos-badge,
-.reading-label,
-.definition-label,
-.example-label {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-}
-
-.dictionary-label {
-  padding: 4px 9px;
-  color: #a45f51;
-  background: #f8e8e3;
-}
-
-.pos-badge {
-  padding: 4px 9px;
-  color: #647188;
-  background: #edf0f4;
-}
-
-.writing {
-  color: var(--navy);
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Songti SC", serif;
-  font-size: clamp(36px, 5.2vw, 61px);
-  font-weight: 650;
-  line-height: 1.18;
-  overflow-wrap: anywhere;
-}
-
-.reading-row {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #5f6b80;
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.reading-label {
-  padding: 3px 7px;
-  color: #907246;
-  background: #f6eddd;
-  font-family: Inter, ui-sans-serif, sans-serif;
-  font-size: 8px;
-}
-
-.polite-form {
-  margin: 13px auto 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #536078;
-  font-size: 16px;
-  font-weight: 650;
-}
-
-.polite-form span {
-  padding: 3px 7px;
-  border-radius: 6px;
-  color: #9a7749;
-  background: #f6eddd;
-  font-size: 9px;
-}
-
-.meaning {
-  margin: 0;
-  color: #b9503d;
-  font-size: 15px;
-  font-weight: 750;
-  line-height: 1.55;
-}
-
-.definition-grid {
-  max-width: 520px;
-  margin: 18px auto 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 9px;
-  text-align: left;
-}
-
-.definition-item {
-  padding: 13px 15px;
-  border: 1px solid #e8e3d9;
-  border-radius: 12px;
-  background: rgba(249, 247, 241, 0.82);
-}
-
-.definition-item.chinese {
-  background: rgba(252, 241, 237, 0.72);
-  border-color: #eeddd7;
-}
-
-.definition-label {
-  margin-bottom: 7px;
-  color: #7f8999;
-  font-size: 8px;
-}
-
-.definition-item.chinese .definition-label {
-  color: #a5695f;
-}
-
-.definition-item.chinese .meaning {
-  font-size: 17px;
-}
-
-.jp-definition {
-  margin: 0;
-  color: #3d4a61;
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.65;
-}
-
-.example-box {
-  max-width: 520px;
-  margin: 10px auto 0;
-  padding: 13px 18px;
-  border: 1px solid #ece7dc;
-  border-radius: 14px;
-  background: rgba(248, 246, 239, 0.82);
-}
-
-.example-label {
-  margin-bottom: 6px;
-  color: #858e9d;
-  font-size: 8px;
-}
-
-.example-jp {
-  color: #33415a;
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.example-zh {
-  margin-top: 7px;
-  color: #858d9a;
-  font-size: 11px;
-}
-
-.learning-note {
-  max-width: 520px;
-  margin: 11px auto 0;
-  color: #8e7659;
-  font-size: 10px;
-  line-height: 1.55;
-}
-
-.card-navigation {
-  min-height: 58px;
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 42px;
-  align-items: center;
-  gap: 16px;
-}
-
-.circle-button {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  color: #657087;
-  font-size: 17px;
-}
-
-.reveal-button {
-  justify-self: center;
-  min-width: 170px;
-  padding: 12px 22px;
-  border-color: var(--navy);
-  border-radius: 12px;
-  color: white;
-  background: var(--navy);
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.reveal-button:hover {
-  border-color: var(--navy-soft);
-  background: var(--navy-soft);
-}
-
-.rating-buttons {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.rating-buttons button {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: auto auto;
-  align-items: center;
-  justify-content: center;
-  gap: 1px 7px;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  background: white;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 750;
-  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-}
-
-.rating-buttons button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 7px 18px rgba(30, 40, 60, 0.08);
-}
-
-.rating-buttons button small {
-  grid-column: 1 / -1;
-  color: #9aa1ad;
-  font-size: 8px;
-  font-weight: 600;
-}
-
-.rating-buttons .again:hover { border-color: #e49a8d; }
-.rating-buttons .hard:hover { border-color: #d4b66c; }
-.rating-buttons .know:hover { border-color: #79ad99; }
-
-.progress-panel {
-  display: grid;
-  gap: 17px;
-  padding-top: 39px;
-}
-
-.panel-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.panel-heading span {
-  color: #626e83;
-  font-size: 11px;
-  font-weight: 750;
-}
-
-.panel-heading strong {
-  color: var(--coral);
-  font-size: 18px;
-}
-
-.progress-track {
-  height: 5px;
-  overflow: hidden;
-  border-radius: 5px;
-  background: #e4e0d7;
-}
-
-.progress-track span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #df6b57, #ed9a78);
-  transition: width 280ms ease;
-}
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.stat-grid div {
-  min-width: 0;
-  padding: 12px 7px;
-  border: 1px solid #e7e2d8;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.65);
-  text-align: center;
-}
-
-.stat-grid strong {
-  display: block;
-  color: #34415a;
-  font-family: "Yu Mincho", serif;
-  font-size: 20px;
-}
-
-.stat-grid span {
-  display: block;
-  margin-top: 3px;
-  color: #949ba8;
-  font-size: 8px;
-  white-space: nowrap;
-}
-
-.mastery-card,
-.tip-card,
-.shortcut-card {
-  border: 1px solid #e5e0d5;
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.64);
-}
-
-.mastery-card {
-  padding: 16px;
-}
-
-.panel-heading.compact strong {
-  color: #657187;
-  font-size: 11px;
-}
-
-.mastery-dots {
-  display: flex;
-  gap: 7px;
-  margin-top: 13px;
-}
-
-.mastery-dots span {
-  flex: 1;
-  height: 5px;
-  border-radius: 5px;
-  background: #ddd9d0;
-}
-
-.mastery-dots span.filled {
-  background: #5c9d83;
-}
-
-.mastery-card p {
-  margin: 10px 0 0;
-  color: #929aa8;
-  font-size: 9px;
-}
-
-.tip-card {
-  display: flex;
-  gap: 12px;
-  padding: 16px;
-  background: #fff8ea;
-  border-color: #eadbb9;
-}
-
-.tip-icon {
-  flex: 0 0 auto;
-  width: 31px;
-  height: 31px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: #9e7330;
-  background: #f3dfad;
-  font-family: "Yu Mincho", serif;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.tip-card strong,
-.shortcut-card strong {
-  color: #596479;
-  font-size: 10px;
-}
-
-.tip-card p {
-  margin: 5px 0 0;
-  color: #8d816e;
-  font-size: 9px;
-  line-height: 1.6;
-}
-
-.shortcut-card {
-  display: grid;
-  gap: 9px;
-  padding: 15px;
-}
-
-.shortcut-card > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  color: #8d95a3;
-  font-size: 8px;
-}
-
-.shortcut-card kbd {
-  min-width: 18px;
-  height: 17px;
-  margin-right: 2px;
-  font-size: 7px;
-}
-
-.empty-state {
-  min-height: 500px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px;
-  border: 1px solid #e4dfd5;
-  border-radius: 25px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-
-.empty-seal {
-  width: 58px;
-  height: 58px;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  color: white;
-  background: #5c9d83;
-  font-family: "Yu Mincho", serif;
-  font-size: 28px;
-}
-
-.empty-state h3 {
-  margin: 22px 0 8px;
-  font-family: "Yu Mincho", serif;
-  font-size: 22px;
-}
-
-.empty-state p {
-  max-width: 410px;
-  margin: 0 0 25px;
-  color: #7e8796;
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.source-note {
-  max-width: 1160px;
-  margin: 34px auto 0;
-  color: #a0a6b0;
-  font-size: 9px;
-  text-align: center;
-}
-
-@media (max-width: 1050px) {
-  .app-shell { grid-template-columns: 238px minmax(0, 1fr); }
-  .sidebar { padding-left: 13px; padding-right: 13px; }
-  .study-grid { grid-template-columns: minmax(460px, 1fr) 230px; gap: 28px; }
-  .workspace { padding-left: 28px; padding-right: 28px; }
-  .kana { font-size: clamp(44px, 6vw, 66px); }
-}
-
-@media (max-width: 860px) {
-  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
-  .app-shell { display: block; }
-  .sidebar {
-    position: static;
-    width: 100%;
-    height: auto;
-    overflow: visible;
-    padding: 18px 20px;
-  }
-  .brand { padding-bottom: 16px; }
-  .module-switcher {
-    position: fixed;
-    z-index: 60;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: 12px;
-    width: min(360px, calc(100% - 24px));
-    margin: 0 auto;
-    padding: 6px;
-    border-color: rgba(255, 255, 255, 0.18);
-    background: rgba(23, 35, 58, 0.96);
-    box-shadow: 0 16px 38px rgba(12, 19, 33, 0.24);
-  }
-  .module-switcher a { min-height: 44px; }
-  .sidebar-label { margin-top: 15px; }
-  .category-nav {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: thin;
-  }
-  .category-button {
-    flex: 0 0 auto;
-    width: auto;
-    min-width: 125px;
-    padding: 8px 10px;
-  }
-  .category-copy { display: block; }
-  .category-copy small { display: block; margin-top: 2px; }
-  .sidebar-foot { display: none; }
-  .study-grid { grid-template-columns: 1fr; }
-  .progress-panel {
-    grid-template-columns: 1fr 1fr;
-    padding-top: 0;
-  }
-  .progress-panel > .panel-heading,
-  .progress-panel > .progress-track,
-  .progress-panel > .stat-grid { grid-column: 1 / -1; }
-}
-
-@media (max-width: 600px) {
-  .workspace { padding: 24px 15px 18px; }
-  .topbar { align-items: flex-end; }
-  .topbar h2 { font-size: 25px; }
-  .secondary-button { padding: 9px 11px; }
-  .secondary-button { font-size: 0; }
-  .secondary-button span { font-size: 20px; }
-  .mode-row { margin-top: 22px; overflow-x: auto; }
-  .mode-row button { white-space: nowrap; }
-  .study-grid { display: block; }
-  .flashcard { min-height: 400px; padding: 36px 24px; border-radius: 20px; }
-  .flashcard.is-flipped { min-height: 570px; padding: 30px 18px; }
-  .definition-grid { grid-template-columns: 1fr; }
-  .kana { font-size: clamp(39px, 12vw, 58px); }
-  .writing { font-size: clamp(34px, 10vw, 49px); }
-  .card-navigation { grid-template-columns: 36px minmax(0, 1fr) 36px; gap: 8px; }
-  .circle-button { width: 36px; height: 36px; }
-  .rating-buttons { gap: 5px; }
-  .rating-buttons button { padding: 7px 5px; gap: 2px 4px; }
-  .rating-buttons button kbd { display: none; }
-  .progress-panel { grid-template-columns: 1fr; margin-top: 34px; }
-  .progress-panel > * { grid-column: 1 !important; }
-  .source-note { line-height: 1.6; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
-}
-
+/* THEME_CSS */
   </style>
 </head>
-<body>
-  <div id="app"></div>
+<body data-module="words">
+  <!-- SHELL_TOP -->
+  <div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="词卡分类"></aside>
+    <main class="main" id="main"><div class="main-inner" id="app"></div></main>
+  </div>
+  <!-- SHELL_BOTTOM -->
   <noscript>请在浏览器设置中启用 JavaScript 后使用闪卡。</noscript>
   <script>
+/* COMMON_JS */
 const categoryMeta = [
   { name: "生存表达", mark: "話", tone: "coral" },
   { name: "人物与语言", mark: "人", tone: "gold" },
@@ -1317,7 +196,12 @@ cards.push(...n3Cards);
   const TEST_STORAGE_KEY = "kotoba-test-progress-v1";
   const TEST_MODE_IDS = ["audio-ja", "zh-ja", "jp-zh"];
   const intervals = [0, DAY, 3 * DAY, 7 * DAY, 14 * DAY, 30 * DAY];
+  const ALL = "全部词卡";
+  const MODE_IDS = ["all", "due", "new", "graduated"];
+  const { ICON, esc, mixed, speak, toast, prefs, savePrefs, openDialog, closeDialog, isTyping, updateBadges } = KotobaUI;
   const app = document.getElementById("app");
+  const sidebar = document.getElementById("sidebar");
+  const picker = document.getElementById("picker");
   const storageAvailable = (() => {
     try {
       localStorage.setItem("__kotoba_test__", "1");
@@ -1331,28 +215,28 @@ cards.push(...n3Cards);
   let progress = {};
   let testProgress = {};
   if (storageAvailable) {
-    try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (_) { progress = {}; }
-    try { testProgress = JSON.parse(localStorage.getItem(TEST_STORAGE_KEY) || "{}"); } catch (_) { testProgress = {}; }
+    try { progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch (_) { progress = {}; }
+    try { testProgress = JSON.parse(localStorage.getItem(TEST_STORAGE_KEY) || "{}") || {}; } catch (_) { testProgress = {}; }
   }
 
+  const categoryNames = [ALL, ...categoryMeta.map((category) => category.name)];
+  const markOf = new Map(categoryMeta.map((category) => [category.name, category.mark]));
+  const saved = prefs("words");
   const state = {
-    category: "全部词卡",
-    mode: "all",
+    category: categoryNames.includes(saved.category) ? saved.category : ALL,
+    mode: MODE_IDS.includes(saved.mode) ? saved.mode : "all",
     order: cards.map((card) => card.id),
     index: 0,
     flipped: false,
+    autoplay: Boolean(saved.autoplay),
   };
   let ui = null;
 
-  const escapeHtml = (value) => String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-
   function save() {
-    if (!storageAvailable) return;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (_) {}
+    if (storageAvailable) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (_) {}
+    }
+    updateBadges();
   }
 
   function shuffle(input) {
@@ -1371,9 +255,7 @@ cards.push(...n3Cards);
 
   function filteredCards() {
     const now = Date.now();
-    const categoryCards = state.category === "全部词卡"
-      ? cards
-      : cards.filter((card) => card.category === state.category);
+    const categoryCards = state.category === ALL ? cards : cards.filter((card) => card.category === state.category);
     let visible = state.mode === "graduated"
       ? categoryCards.filter((card) => isTestGraduated(card.id))
       : categoryCards.filter((card) => !isTestGraduated(card.id));
@@ -1390,7 +272,7 @@ cards.push(...n3Cards);
     const now = Date.now();
     return {
       studied: cards.filter((card) => progress[card.id]?.reviews > 0).length,
-      mastered: cards.filter((card) => progress[card.id]?.level >= 4).length,
+      strong: cards.filter((card) => progress[card.id]?.level >= 4).length,
       due: cards.filter((card) => !isTestGraduated(card.id) && progress[card.id]?.reviews > 0 && progress[card.id].due <= now).length,
       graduated: cards.filter((card) => isTestGraduated(card.id)).length,
     };
@@ -1403,41 +285,191 @@ cards.push(...n3Cards);
     return `${Math.ceil(delta / DAY)} 天后`;
   }
 
-  function speak(text) {
-    if (!("speechSynthesis" in window)) {
-      alert("当前浏览器没有可用的语音朗读功能。");
+  function currentDeckState() {
+    const deck = filteredCards();
+    if (state.index >= deck.length) state.index = 0;
+    return { deck, card: deck[state.index] || null };
+  }
+
+  const categoryCount = (name) => (name === ALL ? cards.length : cards.filter((card) => card.category === name).length);
+  const knowInterval = (card) => ["", "1 天后", "3 天后", "7 天后", "14 天后", "30 天后"][Math.min(5, (progress[card.id]?.level || 0) + 1)];
+
+  /* ---------- markup ---------- */
+  function categoryItems() {
+    return categoryNames.map((name) => `<button class="side-item" type="button" data-category="${esc(name)}" aria-current="${state.category === name}">
+        <span class="side-mark" lang="ja">${esc(name === ALL ? "全" : markOf.get(name) || name.slice(0, 1))}</span><span class="side-title">${esc(name)}</span><span class="side-meta">${categoryCount(name)}</span>
+      </button>`).join("");
+  }
+
+  function frontFace(card) {
+    return `<span class="face-tag">${esc(card.category)}</span>
+      <button class="icon-btn face-audio" type="button" data-action="speak-card" aria-label="朗读" title="朗读（P）">${ICON.speaker}</button>
+      <p class="card-kana${card.kana.length > 7 ? " long" : ""}" lang="ja">${esc(card.kana)}</p>
+      ${card.polite ? '<span class="tag warm">动词 · 辞书形</span>' : ""}
+      <p class="face-hint">先读出来，再回忆意思 · 点击卡片翻面</p>`;
+  }
+
+  function backFace(card) {
+    return `<span class="face-tag">${esc(card.category)}</span>
+      <button class="icon-btn face-audio" type="button" data-action="speak-card" aria-label="朗读" title="朗读（P）">${ICON.speaker}</button>
+      <div class="face-body">
+        <p class="card-writing" lang="ja">${esc(card.writing)}</p>
+        ${card.writing !== card.kana ? `<p class="card-reading" lang="ja">${esc(card.kana)}</p>` : ""}
+        ${card.polite ? `<p class="card-polite"><span class="tag">ます形</span><span lang="ja">${esc(card.polite)}</span></p>` : ""}
+        <p class="card-meaning">${esc(card.meaning)}</p>
+        <div class="card-example">
+          <p class="ex-ja" lang="ja">${esc(card.example)}</p>
+          <p class="ex-zh">${esc(card.exampleZh)}</p>
+          <button class="icon-btn" type="button" data-action="speak-example" aria-label="朗读例句" title="朗读例句">${ICON.speaker}</button>
+        </div>
+        ${card.note ? `<p class="card-note">${mixed(card.note)}</p>` : ""}
+      </div>`;
+  }
+
+  function actionCenter(card) {
+    if (!state.flipped) {
+      return '<button class="btn btn-primary btn-lg" type="button" data-action="reveal">显示答案 <span class="kbd kbd-hint">空格</span></button>';
+    }
+    return `<div class="rate" role="group" aria-label="评价记忆情况">
+      <button class="again" type="button" data-action="again"><span class="kbd">1</span>再练<small>10 分钟后</small></button>
+      <button class="hard" type="button" data-action="hard"><span class="kbd">2</span>模糊<small>明天</small></button>
+      <button class="know" type="button" data-action="know"><span class="kbd">3</span>认识<small>${knowInterval(card)}</small></button>
+    </div>`;
+  }
+
+  function progressMarkup(card, summary) {
+    const item = card ? progress[card.id] || { level: 0, due: 0, reviews: 0, misses: 0 } : null;
+    const completion = Math.round((summary.studied / cards.length) * 100);
+    return `<section class="panel"><h3>学习概况</h3>
+        <div class="big-stat"><b>${summary.studied}</b><span>/ ${cards.length} 张已学习</span></div>
+        <div class="bar"><span style="width:${completion}%"></span></div>
+        <div class="stat-list"><div>今日待复习<b>${summary.due}</b></div><div>熟练（4 级以上）<b>${summary.strong}</b></div><div>测试毕业<b>${summary.graduated}</b></div></div>
+      </section>
+      ${card ? `<section class="panel"><h3>这张卡</h3>
+        <div class="mode-row-head"><span>熟练度</span><b class="num">${item.level} / 5</b></div>
+        <div class="dots">${[1, 2, 3, 4, 5].map((level) => `<i class="${item.level >= level ? "on" : ""}"></i>`).join("")}</div>
+        <p class="panel-note">${item.reviews ? `已练 ${item.reviews} 次 · 下次复习：${formatDue(item.due)}` : "还没有学过这张卡"}</p>
+      </section>` : ""}`;
+  }
+
+  function stageMarkup() {
+    const { deck, card } = currentDeckState();
+    const summary = stats();
+    if (!card) {
+      const due = state.mode === "due";
+      return `<div class="panel empty"><div class="empty-seal" lang="ja">済</div>
+        <h3>${due ? "今天的复习已经完成" : "这一组暂时没有词卡"}</h3>
+        <p>${due ? "做得好。可以学几张新词，或者去词汇测试巩固。" : "换一个分类或学习范围继续。"}</p>
+        <button class="btn" type="button" data-mode="all">查看全部词卡</button></div>`;
+    }
+    return `<div class="stage-meta"><span id="deck-position">${state.index + 1} / ${deck.length}</span><div class="bar"><span id="deck-bar" style="width:${((state.index + 1) / deck.length) * 100}%"></span></div>
+        <span class="compact-stats">待复习 <b class="num" id="compact-due">${summary.due}</b> · 已学 <b class="num" id="compact-studied">${summary.studied}</b></span></div>
+      <div class="flip${state.flipped ? " is-flipped" : ""}" id="flashcard" data-action="flip">
+        <div class="flip-inner" id="flip-inner">
+          <div class="face front" id="face-front" aria-hidden="${state.flipped}">${frontFace(card)}</div>
+          <div class="face back" id="face-back" aria-hidden="${!state.flipped}">${backFace(card)}</div>
+        </div>
+      </div>
+      <div class="action-bar">
+        <button class="icon-btn outlined" type="button" data-action="previous" aria-label="上一张">${ICON.left}</button>
+        <div id="action-center">${actionCenter(card)}</div>
+        <button class="icon-btn outlined" type="button" data-action="next" aria-label="下一张">${ICON.right}</button>
+      </div>
+      <p class="shortcut-hint"><span><span class="kbd">空格</span>翻面</span><span><span class="kbd">←</span><span class="kbd">→</span>切换</span><span><span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span>评分</span><span><span class="kbd">P</span>朗读</span></p>`;
+  }
+
+  /* ---------- rendering ---------- */
+  function renderSidebar() {
+    sidebar.innerHTML = `<p class="side-label"><span>分类</span><span class="num">${cards.length} 张</span></p>
+      <nav class="side-list" aria-label="词卡分类">${categoryItems()}</nav>
+      <div class="side-foot"><span>${storageAvailable ? "闪卡进度保存在当前浏览器" : "当前浏览器不能保存进度"}</span><button type="button" data-action="reset">清除闪卡记录…</button></div>`;
+  }
+
+  function updateTitle() {
+    const count = categoryCount(state.category);
+    ui.eyebrow.textContent = `单词闪卡 · ${count} 张`;
+    ui.title.textContent = state.category;
+    ui.titleShort.textContent = state.category;
+  }
+
+  function updateModeRow(summary) {
+    ui.modeRow.querySelectorAll("[data-mode]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.mode === state.mode)));
+    ui.dueCount.textContent = String(summary.due);
+    ui.dueCount.hidden = !summary.due;
+    ui.graduatedCount.textContent = String(summary.graduated);
+    ui.graduatedCount.hidden = !summary.graduated;
+  }
+
+  function renderPanel() {
+    const { card } = currentDeckState();
+    ui.progressPanel.innerHTML = progressMarkup(card, stats());
+  }
+
+  function renderStage(focusAction = "") {
+    ui.studyStage.innerHTML = stageMarkup();
+    renderPanel();
+    if (focusAction) setTimeout(() => ui.studyStage.querySelector(`[data-action="${focusAction}"]`)?.focus({ preventScroll: true }), 0);
+  }
+
+  function setFaces(flipped) {
+    document.getElementById("face-front")?.setAttribute("aria-hidden", String(flipped));
+    document.getElementById("face-back")?.setAttribute("aria-hidden", String(!flipped));
+  }
+
+  // 换卡时不播放反向翻转，直接换内容并轻微滑入
+  function updateCard(direction = 1) {
+    const { deck, card } = currentDeckState();
+    const flip = document.getElementById("flashcard");
+    if (!card || !flip) {
+      renderStage();
       return;
     }
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ja-JP";
-    utterance.rate = 0.82;
-    utterance.pitch = 1;
-    speechSynthesis.speak(utterance);
+    state.flipped = false;
+    flip.classList.add("no-anim");
+    flip.classList.remove("is-flipped");
+    document.getElementById("face-front").innerHTML = frontFace(card);
+    const back = document.getElementById("face-back");
+    back.innerHTML = backFace(card);
+    back.scrollTop = 0;
+    setFaces(false);
+    void flip.offsetWidth;
+    flip.classList.remove("no-anim");
+    const inner = document.getElementById("flip-inner");
+    inner.classList.remove("card-enter", "back-dir");
+    void inner.offsetWidth;
+    inner.classList.add("card-enter");
+    if (direction < 0) inner.classList.add("back-dir");
+    document.getElementById("action-center").innerHTML = actionCenter(card);
+    document.getElementById("deck-position").textContent = `${state.index + 1} / ${deck.length}`;
+    document.getElementById("deck-bar").style.width = `${((state.index + 1) / deck.length) * 100}%`;
+    const summary = stats();
+    document.getElementById("compact-due").textContent = String(summary.due);
+    document.getElementById("compact-studied").textContent = String(summary.studied);
+    renderPanel();
+    if (state.autoplay) speak(card.kana);
   }
 
-  function nextCard() {
-    const deck = filteredCards();
-    if (!deck.length) return;
-    state.index = (state.index + 1) % deck.length;
-    state.flipped = false;
-    renderStudyStage("next");
-    renderProgressPanel(stats());
+  function flipCard() {
+    const { card } = currentDeckState();
+    const flip = document.getElementById("flashcard");
+    if (!card || !flip) return;
+    state.flipped = !state.flipped;
+    flip.classList.toggle("is-flipped", state.flipped);
+    setFaces(state.flipped);
+    document.getElementById("action-center").innerHTML = actionCenter(card);
   }
 
-  function previousCard() {
+  function stepCard(delta) {
     const deck = filteredCards();
     if (!deck.length) return;
-    state.index = (state.index - 1 + deck.length) % deck.length;
-    state.flipped = false;
-    renderStudyStage("previous");
-    renderProgressPanel(stats());
+    state.index = (state.index + delta + deck.length) % deck.length;
+    updateCard(delta);
   }
 
   function rate(rating) {
     const deck = filteredCards();
     const card = deck[state.index] || deck[0];
-    if (!card) return;
+    if (!card || !state.flipped) return;
     const previous = progress[card.id] || { level: 0, due: 0, reviews: 0, misses: 0 };
     let level = previous.level;
     let due = Date.now();
@@ -1455,277 +487,169 @@ cards.push(...n3Cards);
     }
     progress[card.id] = { level, due, reviews: previous.reviews + 1, misses };
     save();
-    if (state.mode === "all") state.index = (state.index + 1) % deck.length;
-    state.flipped = false;
-    const summary = stats();
-    updateModeRow(summary);
-    renderStudyStage(rating);
-    renderProgressPanel(summary);
+    const after = filteredCards();
+    // 评分后卡片仍在当前范围里时前进一张；已移出范围时，下一张会自然补到同一位置
+    if (after.length === deck.length) state.index = (state.index + 1) % after.length;
+    else if (state.index >= after.length) state.index = 0;
+    updateModeRow(stats());
+    if (!after.length) renderStage();
+    else updateCard(1);
   }
 
-  function categoryNavigation() {
-    const allButton = `
-      <button class="category-button ${state.category === "全部词卡" ? "active" : ""}" data-category="全部词卡">
-        <span class="category-mark all-mark">全</span>
-        <span class="category-copy"><strong>全部词卡</strong><small>${cards.length} 张</small></span>
-      </button>`;
-    const categories = categoryMeta.map((category) => {
-      const count = cards.filter((card) => card.category === category.name).length;
-      return `
-        <button class="category-button ${state.category === category.name ? "active" : ""}" data-category="${escapeHtml(category.name)}">
-          <span class="category-mark ${category.tone}">${category.mark}</span>
-          <span class="category-copy"><strong>${escapeHtml(category.name)}</strong><small>${count} 张</small></span>
-        </button>`;
-    }).join("");
-    return allButton + categories;
-  }
-
-  function cardMarkup(card, deck, info) {
-    const itemProgress = progress[card.id] || { level: 0, due: 0, reviews: 0, misses: 0 };
-    const writingType = card.writing === card.kana
-      ? "通常使用假名书写"
-      : card.polite
-        ? "辞书形"
-        : "常用汉字表记";
-    const front = `
-      <div class="front-content">
-        <p class="card-prompt">先读出假名，再回忆意思</p>
-        <div class="kana" lang="ja">${escapeHtml(card.kana)}</div>
-        ${card.polite ? '<div class="form-hint">辞书形</div>' : ""}
-        <div class="tap-hint"><kbd>Space</kbd><span>点击或按空格翻面</span></div>
-      </div>`;
-    const back = `
-      <div class="back-content">
-        <p class="card-prompt">翻面答案</p>
-        <div class="dictionary-meta">
-          <span class="dictionary-label">标准日语</span>
-          <span class="pos-badge">${writingType}</span>
-        </div>
-        <div class="writing" lang="ja">${escapeHtml(card.writing)}</div>
-        <div class="reading-row">
-          <span class="reading-label">读音</span>
-          <span lang="ja">${escapeHtml(card.kana)}</span>
-        </div>
-        ${card.polite ? `<div class="polite-form"><span>礼貌体・ます形</span><b lang="ja">${escapeHtml(card.polite)}</b></div>` : ""}
-        <div class="definition-grid">
-          <div class="definition-item chinese">
-            <div class="definition-label">中文释义</div>
-            <p class="meaning">${escapeHtml(card.meaning)}</p>
-          </div>
-        </div>
-        <div class="example-box">
-          <div class="example-label">标准日语例句</div>
-          <div class="example-jp" lang="ja">${escapeHtml(card.example)}</div>
-          <div class="example-zh">${escapeHtml(card.exampleZh)}</div>
-        </div>
-        ${card.note ? `<div class="learning-note">提示：${escapeHtml(card.note)}</div>` : ""}
-      </div>`;
-    const rating = state.flipped ? `
-      <div class="rating-buttons" aria-label="评价记忆情况">
-        <button class="again" data-action="again"><kbd>1</kbd><span>再练</span><small>10 分钟</small></button>
-        <button class="hard" data-action="hard"><kbd>2</kbd><span>模糊</span><small>明天</small></button>
-        <button class="know" data-action="know"><kbd>3</kbd><span>认识</span><small>逐步延长</small></button>
-      </div>` : '<button class="reveal-button" data-action="reveal">显示答案</button>';
-    return `
-      <div class="card-toolbar">
-        <div class="card-position">
-          <span class="mini-mark ${info?.tone || "coral"}">${info?.mark || "語"}</span>
-          <span>${escapeHtml(card.category)}</span><b>${state.index + 1} / ${deck.length}</b>
-        </div>
-        <button class="audio-button" data-action="speak"><span>♪</span> 朗读</button>
-      </div>
-      <div class="flashcard ${state.flipped ? "is-flipped" : ""}" data-action="flip" role="button" tabindex="0" aria-label="翻转词卡">
-        <div class="card-corner top-left"></div><div class="card-corner bottom-right"></div>
-        ${state.flipped ? back : front}
-      </div>
-      <div class="card-navigation">
-        <button class="circle-button" data-action="previous" aria-label="上一张">←</button>
-        ${rating}
-        <button class="circle-button" data-action="next" aria-label="下一张">→</button>
-      </div>
-      <template id="current-card-data" data-id="${card.id}" data-level="${itemProgress.level}"></template>`;
-  }
-
-  function progressMarkup(card, summary) {
-    const item = card ? progress[card.id] || { level: 0, due: 0, reviews: 0, misses: 0 } : null;
-    const completion = Math.round((summary.studied / cards.length) * 100);
-    return `
-      <div class="panel-heading"><span>学习进度</span><strong>${completion}%</strong></div>
-      <div class="progress-track"><span style="width:${completion}%"></span></div>
-      <div class="stat-grid">
-        <div><strong>${summary.studied}</strong><span>已经学习</span></div>
-        <div><strong>${summary.graduated}</strong><span>测试毕业</span></div>
-        <div><strong>${summary.due}</strong><span>今日待复习</span></div>
-      </div>
-      <div class="mastery-card">
-        <div class="panel-heading compact"><span>当前熟练度</span><strong>${item?.level || 0}/5</strong></div>
-        <div class="mastery-dots">${[1,2,3,4,5].map((level) => `<span class="${(item?.level || 0) >= level ? "filled" : ""}"></span>`).join("")}</div>
-        <p>${item?.reviews ? `已练 ${item.reviews} 次 · ${formatDue(item.due)}` : "还没有学习过这张卡"}</p>
-      </div>
-      <div class="tip-card"><div class="tip-icon">光</div><div><strong>记忆原则</strong><p>先读假名并回忆含义，翻面后核对标准日语表记、读音、释义和例句。</p></div></div>
-      <div class="shortcut-card"><strong>键盘快捷键</strong><div><span><kbd>Space</kbd> 翻面</span><span><kbd>←</kbd><kbd>→</kbd> 切换</span></div><div><span><kbd>1</kbd> 再练</span><span><kbd>2</kbd> 模糊</span><span><kbd>3</kbd> 认识</span></div></div>`;
-  }
-
-  function currentDeckState() {
-    const deck = filteredCards();
-    if (state.index >= deck.length) state.index = 0;
-    const card = deck[state.index] || deck[0];
-    const info = categoryMeta.find((item) => item.name === card?.category);
-    return { deck, card, info };
-  }
-
-  function studyStageMarkup() {
-    const { deck, card, info } = currentDeckState();
-    const stage = card ? cardMarkup(card, deck, info) : `
-      <div class="empty-state"><div class="empty-seal">済</div>
-        <h3>${state.mode === "due" ? "今天已经复习完成" : "这一组暂时没有词卡"}</h3>
-        <p>${state.mode === "due" ? "做得好。可以继续学习未学词卡，或切换到全部模式自由练习。" : "换一个分类或学习模式继续。"}</p>
-        <button class="reveal-button" data-mode="all">查看全部词卡</button>
-      </div>`;
-    return stage;
-  }
-
-  function renderStudyStage(focusAction = "") {
-    ui.studyStage.innerHTML = studyStageMarkup();
-    if (!focusAction) return;
-    window.requestAnimationFrame(() => {
-      const preferred = ui.studyStage.querySelector(`[data-action="${focusAction}"]`);
-      const fallback = ui.studyStage.querySelector('[data-action="flip"]');
-      (preferred || fallback)?.focus({ preventScroll: true });
-    });
-  }
-
-  function updateCategorySelection() {
-    ui.categoryNav.querySelectorAll("[data-category]").forEach((button) => {
-      button.classList.toggle("active", button.dataset.category === state.category);
-    });
-  }
-
-  function updateModeRow(summary) {
-    ui.modeRow.querySelectorAll("[data-mode]").forEach((button) => {
-      button.classList.toggle("active", button.dataset.mode === state.mode);
-    });
-    ui.dueCount.textContent = String(summary.due);
-    ui.graduatedCount.textContent = String(summary.graduated);
-  }
-
-  function renderProgressPanel(summary) {
+  function speakCurrent() {
     const { card } = currentDeckState();
-    ui.progressPanel.innerHTML = progressMarkup(card, summary);
+    if (card) speak(state.flipped ? card.example : card.kana);
   }
 
-  function renderAll() {
-    const summary = stats();
-    updateCategorySelection();
-    updateModeRow(summary);
-    renderStudyStage();
-    renderProgressPanel(summary);
+  function selectCategory(name) {
+    state.category = name;
+    state.index = 0;
+    state.flipped = false;
+    savePrefs("words", { category: name });
+    renderSidebar();
+    updateTitle();
+    updateModeRow(stats());
+    renderStage();
+  }
+
+  function selectMode(mode) {
+    state.mode = mode;
+    state.index = 0;
+    state.flipped = false;
+    savePrefs("words", { mode });
+    updateModeRow(stats());
+    renderStage();
+  }
+
+  function openPicker() {
+    document.getElementById("picker-title").textContent = "选择分类";
+    document.getElementById("picker-list").innerHTML = categoryItems();
+    openDialog(picker);
   }
 
   function renderShell() {
-
     app.innerHTML = `
-      <main class="app-shell">
-        <aside class="sidebar">
-          <div class="brand"><div class="brand-seal">語</div><div><p class="brand-kicker">KOTOBA</p><h1>日语 N3 进阶闪卡</h1></div></div>
-          <nav class="module-switcher" aria-label="日语学习板块">
-            <a href="/japanese">核心表达</a>
-            <a href="/japanese/words" aria-current="page">单词闪卡</a>
-            <a href="/japanese/test">词汇测试</a>
-          </nav>
-          <div class="sidebar-label">学习范围</div>
-          <nav class="category-nav" id="category-nav" aria-label="词卡分类">${categoryNavigation()}</nav>
-          <div class="sidebar-foot">
-            <div class="save-status"><span></span>${storageAvailable ? "进度仅保存在本机" : "当前浏览器不支持保存进度"}</div>
-            <button class="text-button danger" data-action="reset">清除学习记录</button>
+      <header class="page-head">
+        <div class="page-title">
+          <p class="eyebrow" id="deck-eyebrow"></p>
+          <h1><span class="title-text" id="deck-title"></span><button class="title-btn" type="button" data-action="picker"><span id="deck-title-short"></span>${ICON.down}</button></h1>
+        </div>
+        <div class="page-actions words-head-actions">
+          <div class="seg" id="mode-row" role="group" aria-label="学习范围">
+            <button type="button" data-mode="all">全部</button>
+            <button type="button" data-mode="due">今日复习 <span class="pill" id="due-count" hidden></span></button>
+            <button type="button" data-mode="new">未学</button>
+            <button type="button" data-mode="graduated">已毕业 <span class="pill neutral" id="graduated-count" hidden></span></button>
           </div>
-        </aside>
-        <section class="workspace">
-          <header class="topbar"><div><p class="eyebrow">从五十音到 JLPT N3</p><h2>今天，再把表达向前推进一点。</h2></div>
-            <button class="secondary-button" data-action="shuffle"><span>↝</span> 打乱顺序</button>
-          </header>
-          <div class="mode-row" id="mode-row">
-            <button data-mode="all">全部</button>
-            <button data-mode="due">今日复习 <span id="due-count">0</span></button>
-            <button data-mode="new">未学</button>
-            <button data-mode="graduated">已毕业 <span id="graduated-count">0</span></button>
-          </div>
-          <div class="study-grid">
-            <section class="study-stage" id="study-stage" aria-live="polite"></section>
-            <aside class="progress-panel" id="progress-panel"></aside>
-          </div>
-          <footer class="source-note">日语学习应用 · 共 ${cards.length} 张词卡 · 学习记录保存在当前浏览器</footer>
-        </section>
-      </main>`;
+          <span class="head-tools">
+            <button class="icon-btn" type="button" data-action="shuffle" aria-label="打乱顺序" title="打乱顺序">${ICON.shuffle}</button>
+            <button class="icon-btn" type="button" data-action="autoplay" aria-pressed="${state.autoplay}" aria-label="自动朗读" title="翻到新卡时自动朗读">${ICON.speaker}</button>
+          </span>
+        </div>
+      </header>
+      <div class="study-layout">
+        <section class="stage" id="study-stage" aria-label="闪卡"></section>
+        <aside class="side-panel" id="progress-panel" aria-label="学习进度"></aside>
+      </div>`;
 
     ui = {
-      appShell: app.querySelector(".app-shell"),
-      categoryNav: document.querySelector("#category-nav"),
-      modeRow: document.querySelector("#mode-row"),
-      dueCount: document.querySelector("#due-count"),
-      graduatedCount: document.querySelector("#graduated-count"),
-      studyStage: document.querySelector("#study-stage"),
-      progressPanel: document.querySelector("#progress-panel"),
+      eyebrow: document.getElementById("deck-eyebrow"),
+      title: document.getElementById("deck-title"),
+      titleShort: document.getElementById("deck-title-short"),
+      modeRow: document.getElementById("mode-row"),
+      dueCount: document.getElementById("due-count"),
+      graduatedCount: document.getElementById("graduated-count"),
+      studyStage: document.getElementById("study-stage"),
+      progressPanel: document.getElementById("progress-panel"),
     };
-    renderAll();
+    renderSidebar();
+    updateTitle();
+    updateModeRow(stats());
+    renderStage();
   }
 
-  app.addEventListener("click", (event) => {
+  /* ---------- events ---------- */
+  document.addEventListener("click", (event) => {
     const target = event.target.closest("button, [data-action], [data-category], [data-mode]");
     if (!target) return;
-    const category = target.dataset.category;
-    const mode = target.dataset.mode;
-    const action = target.dataset.action;
+    const { category, mode, action } = target.dataset;
     if (category) {
-      state.category = category; state.index = 0; state.flipped = false;
-      const summary = stats();
-      updateCategorySelection();
-      updateModeRow(summary);
-      renderStudyStage();
-      renderProgressPanel(summary);
+      if (target.closest("#picker")) closeDialog(picker);
+      selectCategory(category);
       return;
     }
     if (mode) {
-      state.mode = mode; state.index = 0; state.flipped = false;
-      const summary = stats();
-      updateModeRow(summary);
-      renderStudyStage();
-      renderProgressPanel(summary);
+      selectMode(mode);
       return;
     }
-    if (action === "flip") { state.flipped = !state.flipped; renderStudyStage("flip"); }
-    else if (action === "reveal") { state.flipped = true; renderStudyStage("flip"); }
-    else if (action === "next") nextCard();
-    else if (action === "previous") previousCard();
-    else if (action === "again" || action === "hard" || action === "know") rate(action);
-    else if (action === "shuffle") {
-      state.order = shuffle(state.order); state.index = 0; state.flipped = false;
-      renderStudyStage("shuffle");
-      renderProgressPanel(stats());
-    }
-    else if (action === "speak") {
-      const deck = filteredCards(); const card = deck[state.index] || deck[0];
-      if (card) speak(state.flipped ? card.example : card.kana);
-    } else if (action === "reset" && confirm("确定要清除全部学习记录吗？这项操作不能撤销。")) {
-      progress = {}; save(); state.mode = "all"; state.index = 0; state.flipped = false; renderAll();
+    switch (action) {
+      case "flip":
+      case "reveal":
+        flipCard();
+        break;
+      case "previous": stepCard(-1); break;
+      case "next": stepCard(1); break;
+      case "again":
+      case "hard":
+      case "know":
+        rate(action);
+        break;
+      case "shuffle":
+        state.order = shuffle(state.order);
+        state.index = 0;
+        updateCard(1);
+        toast("已打乱顺序");
+        break;
+      case "autoplay":
+        state.autoplay = !state.autoplay;
+        target.setAttribute("aria-pressed", String(state.autoplay));
+        savePrefs("words", { autoplay: state.autoplay });
+        toast(state.autoplay ? "翻到新卡时会自动朗读" : "已关闭自动朗读");
+        break;
+      case "speak-card": {
+        const { card } = currentDeckState();
+        if (card) speak(card.kana);
+        break;
+      }
+      case "speak-example": {
+        const { card } = currentDeckState();
+        if (card) speak(card.example);
+        break;
+      }
+      case "picker": openPicker(); break;
+      case "reset":
+        if (confirm("确定要清除全部闪卡学习记录吗？这项操作不能撤销。")) {
+          progress = {};
+          save();
+          state.mode = "all";
+          state.index = 0;
+          state.flipped = false;
+          updateModeRow(stats());
+          renderStage();
+          toast("闪卡记录已清除");
+        }
+        break;
+      default:
+        break;
     }
   });
 
   window.addEventListener("keydown", (event) => {
-    if (event.target.matches("input, textarea")) return;
+    if (isTyping(event.target) || document.querySelector("dialog[open]")) return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
     if (event.code === "Space") {
       event.preventDefault();
-      state.flipped = !state.flipped;
-      renderStudyStage("flip");
-    }
-    else if (event.key === "ArrowRight") nextCard();
-    else if (event.key === "ArrowLeft") previousCard();
+      flipCard();
+    } else if (event.key === "ArrowRight") stepCard(1);
+    else if (event.key === "ArrowLeft") stepCard(-1);
     else if (state.flipped && event.key === "1") rate("again");
     else if (state.flipped && event.key === "2") rate("hard");
     else if (state.flipped && event.key === "3") rate("know");
+    else if (event.key === "p" || event.key === "P") speakCurrent();
   });
 
   renderShell();
+  KotobaUI.init();
 
   if ("serviceWorker" in navigator && location.protocol === "https:") {
     window.addEventListener("load", () => {
@@ -1733,7 +657,6 @@ cards.push(...n3Cards);
     });
   }
 })();
-
   </script>
 </body>
 </html>
