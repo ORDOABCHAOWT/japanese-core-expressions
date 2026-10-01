@@ -2,9 +2,7 @@ const KotobaUI = (() => {
   "use strict";
 
   const PREFS_KEY = "kotoba-ui-v1";
-  const FLASHCARD_KEY = "kotoba-flashcards-progress-v1";
-  const TEST_KEY = "kotoba-test-progress-v1";
-  const TEST_MODE_IDS = ["audio-ja", "zh-ja", "jp-zh"];
+  const WORDS_KEY = "kotoba-words-v2";
 
   const ICON = {
     speaker: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6.5 9H3.5v6h3L11 19z"/><path d="M15.5 8.8a4.5 4.5 0 0 1 0 6.4"/><path d="M18.4 6a8.5 8.5 0 0 1 0 12"/></svg>',
@@ -123,28 +121,10 @@ const KotobaUI = (() => {
     }
   }
 
-  /* ---------- 顶栏待复习数（三个页面一致） ---------- */
-  function testGraduated(entry) {
-    const modes = entry?.modes || {};
-    return TEST_MODE_IDS.every((modeId) => Boolean(modes[modeId]?.graduated));
-  }
-  function dueCounts(now = Date.now()) {
-    const flashcards = readJson(FLASHCARD_KEY, {});
-    const tests = readJson(TEST_KEY, {});
-    let words = 0;
-    Object.entries(flashcards).forEach(([id, item]) => {
-      if (item?.reviews > 0 && item.due <= now && !testGraduated(tests[id])) words += 1;
-    });
-    let test = 0;
-    Object.values(tests).forEach((entry) => {
-      if (testGraduated(entry)) return;
-      const due = TEST_MODE_IDS.some((modeId) => {
-        const mode = entry?.modes?.[modeId];
-        return mode && !mode.graduated && mode.attempts > 0 && mode.due <= now;
-      });
-      if (due) test += 1;
-    });
-    return { words, test };
+  /* ---------- 顶栏角标：背单词今天到期的词（三个页面一致） ---------- */
+  function dueCounts() {
+    if (typeof Daily === "undefined") return { words: 0 };
+    return { words: Daily.dueCount(readJson(WORDS_KEY, {})) };
   }
   function updateBadges() {
     const counts = dueCounts();
@@ -167,6 +147,55 @@ const KotobaUI = (() => {
     else dialog.setAttribute("open", "");
   }
   const isTyping = (target) => Boolean(target?.closest?.("input, textarea, [contenteditable='true']"));
+
+  /* ---------- 访问密钥：和 Word Notebook 共用，一台设备输入一次 ---------- */
+  function requestAccess({ onSuccess } = {}) {
+    let dialog = document.getElementById("access-dialog");
+    if (!dialog) {
+      dialog = document.createElement("dialog");
+      dialog.className = "modal";
+      dialog.id = "access-dialog";
+      dialog.setAttribute("aria-labelledby", "access-title");
+      dialog.innerHTML = `<div class="modal-head"><h2 id="access-title">输入访问密钥</h2><button class="icon-btn" type="button" data-action="close-dialog" aria-label="关闭">${ICON.x}</button></div>
+        <form class="modal-body access-form" id="access-form">
+          <p class="access-note">和 Word Notebook 用同一个访问密钥。这台设备输入一次，一年内都能和其他设备同步学习记录。</p>
+          <input class="answer-input access-input" id="access-key" name="accessKey" type="password" autocomplete="current-password" placeholder="访问密钥" aria-label="访问密钥" required>
+          <p class="access-error" id="access-error" role="alert" hidden></p>
+          <div class="modal-foot"><button class="btn btn-quiet" type="button" data-action="close-dialog">取消</button><button class="btn btn-primary" type="submit" id="access-submit">登录并同步</button></div>
+        </form>`;
+      document.body.append(dialog);
+      dialog.querySelector("form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const input = dialog.querySelector("#access-key");
+        const error = dialog.querySelector("#access-error");
+        const submit = dialog.querySelector("#access-submit");
+        error.hidden = true;
+        submit.disabled = true;
+        try {
+          const response = await fetch("/japanese/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ accessKey: input.value }),
+          });
+          if (!response.ok) throw new Error(response.status === 401 ? "访问密钥不对，再检查一下。" : `登录没成功（服务器返回 ${response.status}）。`);
+          input.value = "";
+          closeDialog(dialog);
+          toast("已登录，正在同步");
+          dialog.onAccess?.();
+        } catch (failure) {
+          error.textContent = navigator.onLine ? failure.message : "现在离线，联网后再试。";
+          error.hidden = false;
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    }
+    dialog.onAccess = onSuccess;
+    dialog.querySelector("#access-error").hidden = true;
+    openDialog(dialog);
+    setTimeout(() => dialog.querySelector("#access-key")?.focus(), 0);
+  }
 
   /* ---------- iOS 主屏应用底部黑边 ----------
      有的 iPhone 主屏模式下网页铺满全屏（顶部安全区 > 0），但 innerHeight 少了一个状态栏高度，
@@ -212,10 +241,9 @@ const KotobaUI = (() => {
         closeDialog(event.target);
         return;
       }
-      const control = event.target.closest?.("[data-action='close-dialog'], [data-action='shortcuts'], [data-action='local-note']");
+      const control = event.target.closest?.("[data-action='close-dialog'], [data-action='shortcuts']");
       if (!control) return;
       if (control.dataset.action === "close-dialog") closeDialog(control.closest("dialog"));
-      else if (control.dataset.action === "local-note") toast("闪卡和测试进度保存在当前浏览器，不会同步到其他设备");
       else openDialog(document.querySelector("#shortcuts"));
     });
     document.addEventListener("keydown", (event) => {
@@ -225,7 +253,7 @@ const KotobaUI = (() => {
     });
   }
 
-  return { ICON, esc, mixed, looksJapanese, speak, toast, prefs, savePrefs, dueCounts, updateBadges, openDialog, closeDialog, isTyping, scrollToTop, init };
+  return { ICON, esc, mixed, looksJapanese, speak, toast, prefs, savePrefs, dueCounts, updateBadges, requestAccess, openDialog, closeDialog, isTyping, scrollToTop, init };
 })();
 
 if (typeof module !== "undefined" && module.exports) {

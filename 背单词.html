@@ -8,31 +8,32 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="日语核心表达">
-  <meta name="description" content="用听音、中文提示和日中互译三种方式完成日语词汇的艾宾浩斯间隔测试。">
+  <meta name="description" content="__DESCRIPTION__">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
   <link rel="prefetch" href="/japanese" as="document">
-  <link rel="prefetch" href="/japanese/words" as="document">
+  <link rel="prefetch" href="__PREFETCH__" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=3">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=3">
-  <title>词汇测试｜日语核心表达</title>
+  <title>__TITLE__</title>
   <style>
 /* THEME_CSS */
   </style>
 </head>
-<body data-module="test">
+<body data-module="__MODULE__">
   <!-- SHELL_TOP -->
-  <div class="shell">
-    <aside class="sidebar" id="sidebar" aria-label="词汇组"></aside>
+  <div class="shell w-shell">
     <main class="main" id="main"><div class="main-inner" id="app"></div></main>
   </div>
   <!-- SHELL_BOTTOM -->
-  <noscript>请在浏览器设置中启用 JavaScript 后使用测试。</noscript>
+  <dialog class="modal" id="words-dialog" aria-label="背单词"></dialog>
+  <noscript>请在浏览器设置中启用 JavaScript 后使用背单词。</noscript>
   <script>
 /* COMMON_JS */
-/* TEST_ALGORITHM */
-const testCards = [];
-const categoryMarks = {};
-/* TEST_CLIENT */
+/* DAILY_ALGORITHM */
+const WORD_CARDS = [];
+const WORD_CATEGORIES = [];
+/* WORDS_STORE */
+/* WORDS_CLIENT */
   </script>
 </body>
 </html>

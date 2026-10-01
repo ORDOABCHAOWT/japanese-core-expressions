@@ -1,8 +1,8 @@
-const CACHE_NAME = "nihongo-core-v15";
+const CACHE_NAME = "nihongo-core-v16";
 const PRECACHE = [
   "/japanese",
   "/japanese/words",
-  "/japanese/test",
+  "/japanese/library",
   "/japanese/manifest.webmanifest",
   "/japanese/icon-192.png?v=3",
   "/japanese/icon-512.png?v=3",
@@ -14,13 +14,16 @@ const MODULE_PATHS = new Set([
   "/japanese/index.html",
   "/japanese/words",
   "/japanese/words.html",
+  "/japanese/library",
+  "/japanese/library.html",
   "/japanese/test",
   "/japanese/test.html",
 ]);
 
+// 旧的「词汇测试」地址已经并入背单词
 function canonicalModulePath(pathname) {
-  if (pathname === "/japanese/words" || pathname === "/japanese/words.html") return "/japanese/words";
-  if (pathname === "/japanese/test" || pathname === "/japanese/test.html") return "/japanese/test";
+  if (["/japanese/words", "/japanese/words.html", "/japanese/test", "/japanese/test.html"].includes(pathname)) return "/japanese/words";
+  if (pathname === "/japanese/library" || pathname === "/japanese/library.html") return "/japanese/library";
   return "/japanese";
 }
 

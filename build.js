@@ -6,38 +6,28 @@ const sourcePath = path.join(projectDir, "原文提取.md");
 const publicDir = path.join(projectDir, "public");
 const distDir = path.join(projectDir, "dist");
 const outputPath = path.join(distDir, "index.html");
-const flashcardsPath = path.join(projectDir, "单词闪卡.html");
-const flashcardsOutputPath = path.join(distDir, "words.html");
-const testTemplatePath = path.join(projectDir, "词汇测试.html");
+const wordsTemplatePath = path.join(projectDir, "背单词.html");
+const wordsOutputPath = path.join(distDir, "words.html");
+const libraryOutputPath = path.join(distDir, "library.html");
 const testOutputPath = path.join(distDir, "test.html");
 const n3LessonsPath = path.join(projectDir, "content", "n3-lessons.json");
 const n3FlashcardsPath = path.join(projectDir, "content", "n3-flashcards.json");
+const baseFlashcardsPath = path.join(projectDir, "content", "base-flashcards.json");
+const categoriesPath = path.join(projectDir, "content", "flashcard-categories.json");
 
 const raw = fs.readFileSync(sourcePath, "utf8");
 const clientScript = fs.readFileSync(path.join(projectDir, "app-client.js"), "utf8");
 const n3Lessons = JSON.parse(fs.readFileSync(n3LessonsPath, "utf8"));
 const n3Flashcards = JSON.parse(fs.readFileSync(n3FlashcardsPath, "utf8"));
-const flashcardsTemplate = fs.readFileSync(flashcardsPath, "utf8");
-const testTemplate = fs.readFileSync(testTemplatePath, "utf8");
-const testAlgorithm = fs.readFileSync(path.join(projectDir, "test-algorithm.js"), "utf8");
-const testClient = fs.readFileSync(path.join(projectDir, "test-client.js"), "utf8");
+const wordsTemplate = fs.readFileSync(wordsTemplatePath, "utf8");
+const dailyScript = fs.readFileSync(path.join(projectDir, "daily-algorithm.js"), "utf8").replace(/\nif \(typeof module[\s\S]*$/, "\n");
+const wordsStoreScript = fs.readFileSync(path.join(projectDir, "words-store.js"), "utf8");
+const wordsClientScript = fs.readFileSync(path.join(projectDir, "words-client.js"), "utf8");
 const themeCss = fs.readFileSync(path.join(projectDir, "ui", "theme.css"), "utf8");
 const commonScript = fs.readFileSync(path.join(projectDir, "ui", "common.js"), "utf8");
 const KotobaUI = require("./ui/common.js");
-const baseCardsMatch = flashcardsTemplate.match(/const cards = (\[[\s\S]*?\n\]);\nconst n3Cards/);
-
-if (!baseCardsMatch) {
-  throw new Error("单词闪卡模板缺少基础词卡数据。" );
-}
-
-const baseFlashcards = new Function(`"use strict"; return ${baseCardsMatch[1]}`)();
-const categoryMetaMatch = flashcardsTemplate.match(/const categoryMeta = (\[[\s\S]*?\n\]);/);
-if (!categoryMetaMatch) {
-  throw new Error("单词闪卡模板缺少分类数据。");
-}
-const categoryMarks = Object.fromEntries(
-  new Function(`"use strict"; return ${categoryMetaMatch[1]}`)().map((category) => [category.name, category.mark]),
-);
+const baseFlashcards = JSON.parse(fs.readFileSync(baseFlashcardsPath, "utf8"));
+const wordCategories = JSON.parse(fs.readFileSync(categoriesPath, "utf8"));
 const allFlashcards = [...baseFlashcards, ...n3Flashcards];
 const n3CardRequired = ["id", "category", "kana", "writing", "meaning", "example", "exampleZh"];
 const invalidN3Cards = n3Flashcards.filter(
@@ -47,6 +37,17 @@ const n3CardIds = new Set(n3Flashcards.map((card) => card.id));
 if (n3Flashcards.length !== 120 || n3CardIds.size !== n3Flashcards.length || invalidN3Cards.length) {
   throw new Error(
     `N3 词卡校验未通过：共 ${n3Flashcards.length} 张，唯一 ID ${n3CardIds.size} 个，结构异常 ${invalidN3Cards.length} 张。`,
+  );
+}
+
+const allCardIds = new Set(allFlashcards.map((card) => card.id));
+const categoryNames = new Set(wordCategories.map((category) => category.name));
+const invalidCards = allFlashcards.filter(
+  (card) => n3CardRequired.some((field) => !card[field]) || !categoryNames.has(card.category),
+);
+if (baseFlashcards.length !== 121 || allCardIds.size !== allFlashcards.length || invalidCards.length) {
+  throw new Error(
+    `词卡校验未通过：入门 ${baseFlashcards.length} 张，唯一 ID ${allCardIds.size} 个，结构或分类异常 ${invalidCards.map((card) => card.id).join("、")}。`,
   );
 }
 
@@ -239,7 +240,7 @@ const chapters = [
 
 const TOTAL_LESSONS = lessons.length;
 const TOTAL_CHAPTERS = chapters.length;
-const TOTAL_FLASHCARDS = baseFlashcards.length + n3Flashcards.length;
+const TOTAL_FLASHCARDS = allFlashcards.length;
 const { ICON, mixed } = KotobaUI;
 
 const lessonData = lessons.map((lesson) => {
@@ -292,24 +293,23 @@ const MODULES = [
   {
     id: "words",
     href: "/japanese/words",
-    label: "单词闪卡",
+    label: "背单词",
     badge: "words",
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7.5" y="3" width="13" height="16" rx="2.5"/><path d="M4 7.5v11A2.5 2.5 0 0 0 6.5 21h9"/></svg>',
   },
   {
-    id: "test",
-    href: "/japanese/test",
-    label: "词汇测试",
-    badge: "test",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+    id: "library",
+    href: "/japanese/library",
+    label: "词库",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><path d="M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01"/></svg>',
   },
 ];
 const SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>';
 const KEYBOARD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7.5 14h9"/></svg>';
 const SHORTCUTS = {
   core: [["上一句 / 下一句", ["↑", "↓"]], ["朗读当前句", ["空格"]], ["标记 / 取消已掌握", ["M"]], ["搜索全部表达", ["/"]], ["清除搜索、关闭详情", ["Esc"]]],
-  words: [["翻面", ["空格"]], ["上一张 / 下一张", ["←", "→"]], ["再练 / 模糊 / 认识", ["1", "2", "3"]], ["朗读", ["P"]]],
-  test: [["提交答案", ["Enter"]], ["下一题", ["Enter"]]],
+  words: [["显示答案 / 记住了，继续", ["空格"]], ["忘了 / 记得 / 很熟", ["1", "2", "3"]], ["朗读", ["P"]], ["先退出这一轮", ["Esc"]]],
+  library: [["关闭词的详情", ["Esc"]]],
 };
 
 function moduleLink(module, current, withIcon) {
@@ -320,11 +320,8 @@ function moduleLink(module, current, withIcon) {
     : `<a href="${module.href}"${currentAttr}>${module.label}${badge ? ` ${badge}` : ""}</a>`;
 }
 
-function syncButton(current) {
-  if (current === "core") {
-    return '<button class="sync" id="sync-trigger" type="button" data-state="syncing" title="正在读取网站上的学习记录…"><span class="sync-dot" id="sync-dot" data-state="syncing" aria-hidden="true"></span><span id="sync-label">同步中</span></button>';
-  }
-  return '<button class="sync" type="button" data-action="local-note" title="闪卡与测试进度保存在当前浏览器"><span class="sync-dot" data-state="local" aria-hidden="true"></span><span>本机保存</span></button>';
+function syncButton() {
+  return '<button class="sync" id="sync-trigger" type="button" data-state="syncing" title="正在读取网站上的学习记录…"><span class="sync-dot" id="sync-dot" data-state="syncing" aria-hidden="true"></span><span id="sync-label">同步中</span></button>';
 }
 
 function shellTop(current) {
@@ -337,7 +334,7 @@ function shellTop(current) {
     </a>
     <nav class="seg module-tabs" aria-label="学习模块">${MODULES.map((module) => moduleLink(module, current, false)).join("")}</nav>
     <div class="top-actions">
-      ${syncButton(current)}
+      ${syncButton()}
       <button class="icon-btn" type="button" data-action="shortcuts" aria-label="键盘快捷键" title="键盘快捷键（?）">${KEYBOARD_ICON}</button>
     </div>
   </header>`;
@@ -372,23 +369,43 @@ function applyShell(template, current) {
 }
 
 /* ============================================================
-   单词闪卡与词汇测试
+   背单词与词库：同一套页面，按模块打开不同的视图
    ============================================================ */
-const flashcardsSource = flashcardsTemplate.replace("const n3Cards = [];", () => `const n3Cards = ${JSON.stringify(n3Flashcards)};`);
-if (flashcardsSource === flashcardsTemplate) {
-  throw new Error("单词闪卡模板缺少 N3 内容注入点。");
+function wordsPage(module) {
+  const page = module === "words"
+    ? { title: "背单词｜日语核心表达", description: `每天一个入口：一轮 10 个词，新词有固定名额，熟词可以跳过。共 ${TOTAL_FLASHCARDS} 个词，进度在设备之间同步。`, prefetch: "/japanese/library" }
+    : { title: "词库｜日语核心表达", description: `${TOTAL_FLASHCARDS} 个词的学习进度：学习中、已掌握、未学和已跳过，可以批量跳过熟词或恢复。`, prefetch: "/japanese/words" };
+  const source = wordsTemplate
+    .replace("__TITLE__", () => page.title)
+    .replace("__DESCRIPTION__", () => page.description)
+    .replace("__PREFETCH__", () => page.prefetch)
+    .replace("__MODULE__", () => module)
+    .replace("/* DAILY_ALGORITHM */", () => dailyScript)
+    .replace("const WORD_CARDS = [];", () => `const WORD_CARDS = ${scriptJson(allFlashcards)};`)
+    .replace("const WORD_CATEGORIES = [];", () => `const WORD_CATEGORIES = ${scriptJson(wordCategories)};`)
+    .replace("/* WORDS_STORE */", () => wordsStoreScript)
+    .replace("/* WORDS_CLIENT */", () => wordsClientScript);
+  if (/__[A-Z]+__|\/\* (?:DAILY_ALGORITHM|WORDS_STORE|WORDS_CLIENT) \*\//.test(source)) {
+    throw new Error(`${module} 页面模板注入失败。`);
+  }
+  return applyShell(source, module);
 }
-const flashcardsHtml = applyShell(flashcardsSource, "words");
+const wordsHtml = wordsPage("words");
+const libraryHtml = wordsPage("library");
 
-const testSource = testTemplate
-  .replace("/* TEST_ALGORITHM */", () => testAlgorithm)
-  .replace("const testCards = [];", () => `const testCards = ${JSON.stringify(allFlashcards)};`)
-  .replace("const categoryMarks = {};", () => `const categoryMarks = ${JSON.stringify(categoryMarks)};`)
-  .replace("/* TEST_CLIENT */", () => testClient);
-if (testSource === testTemplate || testSource.includes("/* TEST_CLIENT */")) {
-  throw new Error("词汇测试模板注入失败。");
-}
-const testHtml = applyShell(testSource, "test");
+// 旧的「词汇测试」地址：已经装在主屏或加了书签的，打开后直接转到背单词
+const testHtml = `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="refresh" content="0; url=/japanese/words">
+  <title>背单词｜日语核心表达</title>
+  <script>location.replace("/japanese/words");</script>
+</head>
+<body><p>词汇测试已经并入<a href="/japanese/words">背单词</a>。</p></body>
+</html>
+`;
 
 /* ============================================================
    核心表达
@@ -468,7 +485,7 @@ const html = `<!doctype html>
   <meta name="description" content="${TOTAL_LESSONS}句从零基础到 N3 的日语核心表达互动教材：读音、中文、拼句、逐词拆解、替换练习与记忆提示。">
   <link rel="manifest" href="/japanese/manifest.webmanifest">
   <link rel="prefetch" href="/japanese/words" as="document">
-  <link rel="prefetch" href="/japanese/test" as="document">
+  <link rel="prefetch" href="/japanese/library" as="document">
   <link rel="icon" type="image/png" sizes="32x32" href="/japanese/icon-32.png?v=3">
   <link rel="apple-touch-icon" sizes="180x180" href="/japanese/icon-180.png?v=3">
   <title>核心表达｜日语核心表达</title>
@@ -543,6 +560,7 @@ ${themeCss}
   <script>
     window.__LESSON_DATA__ = ${scriptJson(lessonData)};
     window.__CHAPTERS__ = ${scriptJson(chapterData)};
+${dailyScript}
 ${commonScript}
 ${clientScript}
   </script>
@@ -551,9 +569,9 @@ ${clientScript}
 
 fs.mkdirSync(distDir, { recursive: true });
 fs.rmSync(path.join(distDir, "words"), { recursive: true, force: true });
-fs.mkdirSync(path.dirname(flashcardsOutputPath), { recursive: true });
 fs.writeFileSync(outputPath, html.replace(/[ \t]+$/gm, ""));
-fs.writeFileSync(flashcardsOutputPath, flashcardsHtml);
+fs.writeFileSync(wordsOutputPath, wordsHtml);
+fs.writeFileSync(libraryOutputPath, libraryHtml);
 fs.writeFileSync(testOutputPath, testHtml);
 for (const fileName of [
   "manifest.webmanifest",
@@ -567,4 +585,4 @@ for (const fileName of [
 ]) {
   fs.copyFileSync(path.join(publicDir, fileName), path.join(distDir, fileName));
 }
-console.log(`已生成 ${lessons.length} 条核心表达、${TOTAL_CHAPTERS} 个章节与 ${TOTAL_FLASHCARDS} 张单词闪卡 PWA：${distDir}`);
+console.log(`已生成 ${lessons.length} 条核心表达、${TOTAL_CHAPTERS} 个章节、${TOTAL_FLASHCARDS} 个词的背单词与词库 PWA：${distDir}`);

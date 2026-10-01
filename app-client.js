@@ -27,6 +27,7 @@
   const detailPane = $("#phrase-detail");
   const sheet = $("#detail-sheet");
   const syncTrigger = $("#sync-trigger");
+  let needsAccess = false;
   const syncLabel = $("#sync-label");
   const syncDot = $("#sync-dot");
   const quizDialog = $("#quiz-dialog");
@@ -406,7 +407,7 @@
     syncDot.dataset.state = kind;
     syncLabel.textContent = label;
     syncTrigger.title = message || "点击立即同步";
-    syncTrigger.setAttribute("aria-label", `${label}。点击立即同步`);
+    syncTrigger.setAttribute("aria-label", `${label}。${kind === "locked" ? "点击输入访问密钥" : "点击立即同步"}`);
   }
 
   function readableSyncError(error) {
@@ -453,7 +454,13 @@
           }),
         });
         const payload = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          needsAccess = true;
+          setSyncStatus("locked", "未登录", "输入访问密钥后，掌握记录和小测试成绩才能在 Mac 和 iPhone 之间同步");
+          return null;
+        }
         if (!response.ok) throw new Error(payload.error || payload.message || `服务器返回 ${response.status}`);
+        needsAccess = false;
         mergeRemoteProgress(payload);
         state.pendingEvents = state.pendingEvents.filter((event) => !sentEventIds.has(event.id));
         rebuildLearnedSet();
@@ -776,7 +783,10 @@
   });
   $("#random-review").addEventListener("click", openQuiz);
   $("#quiz-start").addEventListener("click", startQuiz);
-  syncTrigger.addEventListener("click", () => syncNow());
+  syncTrigger.addEventListener("click", () => {
+    if (needsAccess) KotobaUI.requestAccess({ onSuccess: () => syncNow() });
+    else syncNow();
+  });
   window.addEventListener("online", () => syncNow());
   window.addEventListener("popstate", () => closeSheet({ fromHistory: true }));
   window.addEventListener("resize", () => {

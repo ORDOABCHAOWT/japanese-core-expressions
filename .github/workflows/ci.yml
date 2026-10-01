@@ -23,5 +23,5 @@ jobs:
           node-version: 22
       - name: Build PWA
         run: npm run build
-      - name: Validate content, theme and scheduler
+      - name: Validate pages, theme and daily scheduler
         run: npm test

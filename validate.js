@@ -1,14 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 
+const read = (file) => {
+  const target = path.join(__dirname, "dist", file);
+  return fs.existsSync(target) ? fs.readFileSync(target, "utf8") : "";
+};
 const htmlPath = path.join(__dirname, "dist", "index.html");
-const html = fs.readFileSync(htmlPath, "utf8");
-const flashcardsPath = path.join(__dirname, "dist", "words.html");
-const flashcardsHtml = fs.existsSync(flashcardsPath) ? fs.readFileSync(flashcardsPath, "utf8") : "";
-const testPath = path.join(__dirname, "dist", "test.html");
-const testHtml = fs.existsSync(testPath) ? fs.readFileSync(testPath, "utf8") : "";
-const serviceWorkerPath = path.join(__dirname, "dist", "sw.js");
-const serviceWorker = fs.existsSync(serviceWorkerPath) ? fs.readFileSync(serviceWorkerPath, "utf8") : "";
+const html = read("index.html");
+const wordsHtml = read("words.html");
+const libraryHtml = read("library.html");
+const testHtml = read("test.html");
+const serviceWorker = read("sw.js");
 const failures = [];
 
 function count(pattern) {
@@ -33,10 +35,9 @@ if (!html.includes('const SYNC_ENDPOINT = "/japanese/api/progress"')) {
 if (!html.includes('id="sync-trigger"') || !html.includes('id="quiz-dialog"')) {
   failures.push("缺少自动同步状态或小测试窗口");
 }
-if (!html.includes('href="/japanese/words"')) {
-  failures.push("核心表达页缺少单词闪卡入口");
-}
-if (!html.includes('href="/japanese/test"')) failures.push("核心表达页缺少词汇测试入口");
+if (!html.includes('href="/japanese/words"')) failures.push("核心表达页缺少背单词入口");
+if (!html.includes('href="/japanese/library"')) failures.push("核心表达页缺少词库入口");
+if (!html.includes("function dueCount(")) failures.push("核心表达页缺少背单词角标计算");
 if (!html.includes('href="/japanese" aria-current="page"')) {
   failures.push("核心表达页缺少明确的当前模块入口");
 }
@@ -91,6 +92,8 @@ for (const asset of [
   "icon-512.png",
   "icon-maskable-512.png",
   "icon-1024.png",
+  "words.html",
+  "library.html",
   "test.html",
 ]) {
   if (!fs.existsSync(path.join(__dirname, "dist", asset))) {
@@ -98,95 +101,69 @@ for (const asset of [
   }
 }
 
-if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v15"')) {
+if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v16"')) {
   failures.push("Service Worker 缓存版本未升级");
 }
-if (!serviceWorker.includes('"/japanese"') || !serviceWorker.includes('"/japanese/words"') || !serviceWorker.includes('"/japanese/test"')) {
+if (!serviceWorker.includes('"/japanese/words"') || !serviceWorker.includes('"/japanese/library"') || !serviceWorker.includes('"/japanese/test"')) {
   failures.push("Service Worker 缺少分模块离线导航回退");
 }
 if (!serviceWorker.includes("const MODULE_PATHS = new Set") || !serviceWorker.includes("canonicalModulePath") || !serviceWorker.includes("const cached = await cache.match")) {
   failures.push("模块切换未使用缓存优先的快速导航");
 }
 
-if (!flashcardsHtml) {
-  failures.push("缺少单词闪卡页面");
-} else {
-  if (!flashcardsHtml.startsWith("<!doctype html>")) failures.push("单词闪卡缺少 HTML5 doctype");
-  if (!flashcardsHtml.includes('href="/japanese"')) failures.push("单词闪卡缺少明确的核心表达入口");
-  if (!flashcardsHtml.includes('href="/japanese/test"')) failures.push("单词闪卡缺少词汇测试入口");
-  if (!flashcardsHtml.includes('href="/japanese/manifest.webmanifest"')) failures.push("单词闪卡缺少 PWA manifest");
-  if (countFlashcards(flashcardsHtml) !== 241) failures.push("单词闪卡不是 241 张");
-  if (!flashcardsHtml.includes('category":"N3 常用动词"') || !flashcardsHtml.includes('category":"连接与副词"')) {
-    failures.push("单词闪卡缺少 N3 进阶分类");
+function checkScript(name, page) {
+  const script = page.match(/<script>([\s\S]*?)<\/script>/);
+  if (!script) {
+    failures.push(`${name}缺少互动脚本`);
+    return;
   }
-  if (!flashcardsHtml.includes('rel="prefetch" href="/japanese"')) {
-    failures.push("单词闪卡缺少核心表达页预取");
-  }
-  if (flashcardsHtml.includes('href="/japanese/words.html"') || flashcardsHtml.includes('href="/japanese/index.html"')) {
-    failures.push("单词闪卡仍使用会触发线上重定向的旧模块地址");
-  }
-  if ((flashcardsHtml.match(/<\/head>/g) || []).length !== 1) failures.push("单词闪卡 head 结构异常");
-  if ((flashcardsHtml.match(/app\.innerHTML\s*=/g) || []).length !== 1) {
-    failures.push("单词闪卡仍可能在交互时整页重建");
-  }
-  if (!flashcardsHtml.includes('id="study-stage"') || !flashcardsHtml.includes('id="progress-panel"')) {
-    failures.push("单词闪卡缺少局部更新区域");
-  }
-  if (!flashcardsHtml.includes('data-mode="graduated"') || !flashcardsHtml.includes("isTestGraduated")) {
-    failures.push("单词闪卡没有排除已通过三路测试的毕业词");
-  }
-
-  const flashcardScript = flashcardsHtml.match(/<script>([\s\S]*?)<\/script>/);
-  if (!flashcardScript) {
-    failures.push("单词闪卡缺少互动脚本");
-  } else {
-    try {
-      new Function(flashcardScript[1]);
-    } catch (error) {
-      failures.push(`单词闪卡脚本语法错误：${error.message}`);
-    }
+  try {
+    new Function(script[1]);
+  } catch (error) {
+    failures.push(`${name}脚本语法错误：${error.message}`);
   }
 }
 
-if (!testHtml) {
-  failures.push("缺少词汇测试页面");
-} else {
-  if (!testHtml.startsWith("<!doctype html>")) failures.push("词汇测试缺少 HTML5 doctype");
-  if (!testHtml.includes('href="/japanese/test" aria-current="page"')) failures.push("词汇测试缺少当前模块标记");
-  if (!testHtml.includes('href="/japanese/words"')) failures.push("词汇测试缺少单词闪卡入口");
-  if (!testHtml.includes('"audio-ja"') || !testHtml.includes('"zh-ja"') || !testHtml.includes('"jp-zh"')) {
-    failures.push("词汇测试缺少三种测试方式");
+function checkWordsPage(name, page, module, otherHref) {
+  if (!page) {
+    failures.push(`缺少${name}页面`);
+    return;
   }
-  if (!testHtml.includes("10 * MINUTE") || !testHtml.includes("30 * DAY") || !testHtml.includes("cardGraduated")) {
-    failures.push("词汇测试缺少完整的艾宾浩斯间隔或三路毕业判定");
+  if (!page.startsWith("<!doctype html>")) failures.push(`${name}缺少 HTML5 doctype`);
+  if (!page.includes(`<body data-module="${module}">`)) failures.push(`${name}模块标记不对`);
+  if (!page.includes(`href="/japanese/${module}" aria-current="page"`)) failures.push(`${name}缺少当前模块标记`);
+  if (!page.includes('href="/japanese"') || !page.includes(`href="${otherHref}"`)) failures.push(`${name}缺少其他模块入口`);
+  if (!page.includes('href="/japanese/manifest.webmanifest"')) failures.push(`${name}缺少 PWA manifest`);
+  if (!page.includes('const ENDPOINT = "/japanese/api/words"') || !page.includes('id="sync-trigger"')) failures.push(`${name}缺少跨设备同步`);
+  if (!page.includes("function requestAccess(")) failures.push(`${name}缺少访问密钥入口`);
+  if (!page.includes('id="words-dialog"')) failures.push(`${name}缺少设置与详情窗口`);
+  if (page.includes('href="/japanese/words.html"') || page.includes('href="/japanese/index.html"')) failures.push(`${name}仍使用会触发线上重定向的旧模块地址`);
+  if ((page.match(/<\/head>/g) || []).length !== 1) failures.push(`${name} head 结构异常`);
+  const cardsMatch = page.match(/const WORD_CARDS = (\[[\s\S]*?\]);\n/);
+  const categoriesMatch = page.match(/const WORD_CATEGORIES = (\[[\s\S]*?\]);\n/);
+  try {
+    const cards = JSON.parse(cardsMatch[1]);
+    const categories = JSON.parse(categoriesMatch[1]);
+    if (cards.length !== 241 || new Set(cards.map((card) => card.id)).size !== 241) failures.push(`${name}不是 241 个不重复的词`);
+    if (categories.length !== 15) failures.push(`${name}分类不是 15 个`);
+    if (!cards.some((card) => card.category === "N3 常用动词") || !cards.some((card) => card.id === "greeting-05")) failures.push(`${name}缺少入门或 N3 词`);
+  } catch (error) {
+    failures.push(`${name}词卡数据无法解析：${error.message}`);
   }
-  if (!testHtml.includes("state.result?.card || current.card") || !testHtml.includes("state.result?.card || currentQuestion().card")) {
-    failures.push("词汇测试结果页没有锁定刚刚作答的词");
+  for (const marker of ["Daily.startRound", "Daily.knownOutside", "Daily.startExtraNew", "Daily.checkTyped", "data-action=\"known\"", "早就会了，跳过", "NEW_PER_DAY = { 1: 2, 2: 4, 3: 6 }"]) {
+    if (!page.includes(marker)) failures.push(`${name}缺少：${marker}`);
   }
-  const testCardsMatch = testHtml.match(/const testCards = (\[[\s\S]*?\]);\n/);
-  if (!testCardsMatch) {
-    failures.push("词汇测试缺少词卡数据");
-  } else {
-    try {
-      if (JSON.parse(testCardsMatch[1]).length !== 241) failures.push("词汇测试不是 241 个词条");
-    } catch (error) {
-      failures.push(`词汇测试数据无法解析：${error.message}`);
-    }
-  }
-  const testScript = testHtml.match(/<script>([\s\S]*?)<\/script>/);
-  if (!testScript) {
-    failures.push("词汇测试缺少互动脚本");
-  } else {
-    try {
-      new Function(testScript[1]);
-    } catch (error) {
-      failures.push(`词汇测试脚本语法错误：${error.message}`);
-    }
-  }
+  checkScript(name, page);
+}
+
+checkWordsPage("背单词", wordsHtml, "words", "/japanese/library");
+checkWordsPage("词库", libraryHtml, "library", "/japanese/words");
+if (!testHtml.includes('location.replace("/japanese/words")') || !testHtml.includes('url=/japanese/words')) {
+  failures.push("旧的词汇测试地址没有转到背单词");
 }
 
 // 三个模块必须共用同一套主题：同样的字体角色、配色和最小字号
-const pages = { 核心表达: html, 单词闪卡: flashcardsHtml, 词汇测试: testHtml };
+const pages = { 核心表达: html, 背单词: wordsHtml, 词库: libraryHtml };
 const themes = Object.entries(pages).map(([name, page]) => [name, ((page.match(/<style>([\s\S]*?)<\/style>/) || [])[1] || "").trim()]);
 if (!themes[0][1] || new Set(themes.map(([, css]) => css)).size !== 1) {
   failures.push("三个模块没有使用同一套主题样式");
@@ -209,11 +186,4 @@ if (failures.length) {
 }
 
 const sizeKb = Math.round(fs.statSync(htmlPath).size / 1024);
-console.log(`验证通过：136 条核心表达、241 张单词闪卡、三路艾宾浩斯词汇测试、14 个章节、统一主题、快速模块切换与离线资源正常（主页 ${sizeKb} KB）。`);
-
-function countFlashcards(value) {
-  const start = value.indexOf("const cards = [");
-  const end = value.indexOf("cards.push(...n3Cards);");
-  if (start < 0 || end < 0) return 0;
-  return [...value.slice(start, end).matchAll(/(?:\bid|"id")\s*:/g)].length;
-}
+console.log(`验证通过：136 条核心表达、背单词与词库共 241 个词、14 个章节、统一主题、跨设备同步入口、快速模块切换与离线资源正常（主页 ${sizeKb} KB）。`);

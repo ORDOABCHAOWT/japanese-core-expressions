@@ -18,6 +18,7 @@ const files = [
   "icon-maskable-512.png",
   "icon-1024.png",
   "words.html",
+  "library.html",
   "test.html",
 ];
 
