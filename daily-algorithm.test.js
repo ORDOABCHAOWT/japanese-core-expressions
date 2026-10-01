@@ -108,15 +108,17 @@ Daily.act(known, "known");
 assert.ok(!known.session.queue.slice(known.session.pos).some((item) => item.id === skipped));
 assert.equal(known.session.results[skipped], "known");
 
-// 多学新词不占当天名额
+// 多学新词不占当天名额，在里面跳过熟词也不占
 let extra = Daily.normalizeState(null, 4000);
 Daily.startExtraNew(extra);
 assert.equal(extra.session.words.length, Daily.EXTRA_NEW);
+Daily.act(extra, "known");
 play(extra, answerAll);
 info = Daily.today(extra);
-assert.equal(info.extraNew, Daily.EXTRA_NEW);
+assert.equal(info.extraNew, Daily.EXTRA_NEW - 1);
 assert.equal(info.totalNew, 4);
 assert.equal(info.done, 0);
+assert.equal(info.total, 4);
 
 // 旧版进度迁移：取最好的一份，时间戳早于任何新版记录
 const legacyFlash = {
@@ -154,8 +156,20 @@ assert.equal(migrated.words["people-01"].stage, 4);
 assert.equal(migrated.words["n3-life-01"].reviews, 2, "较新的本地记录保留");
 assert.deepEqual(migrated.pending.words, ["n3-life-01"]);
 assert.equal(migrated.settings.rounds, 3);
-assert.equal(migrated.settings.onboarded, true);
+assert.equal(migrated.onboarded, false, "欢迎页是否看过只记在这台设备上");
+assert.equal(Object.hasOwn(migrated.settings, "onboarded"), false);
+assert.equal(Object.hasOwn(Daily.syncBody({ ...migrated, pending: { words: [], settings: true, activity: false } }).settings.data, "onboarded"), false);
 assert.deepEqual(migrated.activeDays, [10, 11]);
+
+// 一次最多送 100 个词
+const many = Daily.normalizeState(null, 7000);
+cards.forEach((item) => {
+  many.words[item.id] = { status: "learning", stage: 1, dueDay: 7001, lapses: 0, reviews: 1, weak: null, introDay: 6990, introExtra: null, lastDay: 6999, knownDay: null, updatedAt: "2026-10-01T00:00:00.000Z" };
+  many.pending.words.push(item.id);
+});
+assert.equal(Daily.syncBody(many).words.length, 100);
+Daily.mergeRemote(many, { words: Daily.syncBody(many).words, activeDays: [] });
+assert.equal(many.pending.words.length, cards.length - 100);
 
 // 打字判分
 const thanks = Daily.card("greeting-05");
@@ -164,6 +178,14 @@ assert.equal(Daily.checkTyped(thanks, "アリガトウゴザイマス").ok, true
 assert.equal(Daily.checkTyped(Daily.card("n3-verb-01"), "続けます").ok, true);
 assert.equal(Daily.checkTyped(Daily.card("n3-verb-01"), "つずける").near, true);
 assert.equal(Daily.checkTyped(Daily.card("n3-verb-01"), "").ok, false);
+
+// 存下来的一轮里有词表中已经没有的词：这一轮作废，不会卡住
+const brokenRound = Daily.normalizeState(null, 6000);
+Daily.startRound(brokenRound);
+brokenRound.session.queue[0].id = "removed-word";
+assert.equal(Daily.normalizeState(JSON.parse(JSON.stringify(brokenRound)), 6000).session, null);
+// 旧版把 onboarded 放在设置里：读出来时搬到本机字段
+assert.equal(Daily.normalizeState({ ...Daily.emptyState(6000), settings: { rounds: 1, onboarded: true }, onboarded: undefined }, 6000).onboarded, true);
 
 // 换日：昨天没做完的一轮放回今天
 let stale = Daily.normalizeState(null, 5000);

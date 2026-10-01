@@ -61,7 +61,7 @@
   /* ---------- 视图切换：子页面进历史，返回手势回到上一级 ---------- */
   function baseView() {
     if (page === "library") return "library";
-    return state.settings.onboarded ? "home" : "welcome";
+    return state.onboarded ? "home" : "welcome";
   }
 
   function show(view) {
@@ -124,7 +124,7 @@
         return `<section class="w-screen-group" data-group="${esc(cat)}"><div class="w-screen-head"><h3>${esc(cat)} <span class="muted num">${list.length}</span></h3><button class="btn" type="button" data-action="screen-group" data-cat="${esc(cat)}">${all ? "取消这一组" : "这一组都会"}</button></div>
           <div class="w-chip-grid">${list.map((item) => `<button class="w-word-chip" type="button" data-screen-word="${item.id}" aria-pressed="${ui.screen.has(item.id)}"><span class="w-chip-word" lang="ja">${esc(item.writing)}</span><span class="w-chip-meaning">${esc(item.meaning)}</span></button>`).join("")}</div></section>`;
       }).join("")}
-      <div class="w-batch"><span>已选 <b class="num" id="screen-count">${ui.screen.size}</b> 个</span><span class="w-batch-actions"><button class="btn btn-quiet" type="button" data-action="screen-cancel">${state.settings.onboarded ? "取消" : "以后再说"}</button><button class="btn btn-primary" type="button" data-action="screen-done">完成</button></span></div>`;
+      <div class="w-batch"><span>已选 <b class="num" id="screen-count">${ui.screen.size}</b> 个</span><span class="w-batch-actions"><button class="btn btn-quiet" type="button" data-action="screen-cancel">${state.onboarded ? "取消" : "以后再说"}</button><button class="btn btn-primary" type="button" data-action="screen-done">完成</button></span></div>`;
   }
 
   function syncScreenGroup(cat) {
@@ -148,7 +148,7 @@
     before.forEach((id) => {
       if (!ui.screen.has(id)) Daily.restore(state, id);
     });
-    if (!state.settings.onboarded) Daily.updateSettings(state, { onboarded: true });
+    state.onboarded = true;
     commit();
     toast(added ? `跳过了 ${added} 个词，在词库里能恢复` : "没有新跳过的词");
     leave();
@@ -639,15 +639,15 @@
   const actions = {
     "welcome-screen": openScreen,
     "welcome-skip": () => {
-      Daily.updateSettings(state, { onboarded: true });
+      state.onboarded = true;
       commit();
       show("home");
     },
     "open-screen": openScreen,
     "screen-done": finishScreen,
     "screen-cancel": () => {
-      if (!state.settings.onboarded) {
-        Daily.updateSettings(state, { onboarded: true });
+      if (!state.onboarded) {
+        state.onboarded = true;
         commit();
       }
       leave();
@@ -869,8 +869,6 @@
 
   // 别的设备同步过来新记录、或者过了凌晨 4 点：刷新当前页面（正在答的题不受影响）
   WordsStore.onChange(() => {
-    // 在另一台设备上已经开始用新版了：同步到之后直接进今日学习
-    if (ui.view === "welcome" && state.settings.onboarded) ui.view = baseView();
     if (ui.view === "round" && !Daily.current(state)) ui.view = baseView();
     if (ui.view === "practice" && ui.practice.stage === "run") return;
     if (ui.view === "screen") return;

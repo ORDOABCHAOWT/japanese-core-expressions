@@ -61,7 +61,9 @@ const Daily = (() => {
     return {
       v: 2,
       day,
-      settings: { rounds: 2, source: "n3", autoplay: false, onboarded: false },
+      settings: { rounds: 2, source: "n3", autoplay: false },
+      // 欢迎页每台设备看一次：里面写着这台设备合并了多少旧记录，也避免第二台设备用默认设置盖掉第一台的
+      onboarded: false,
       settingsUpdatedAt: "",
       words: {},
       days: {},
@@ -87,7 +89,10 @@ const Daily = (() => {
     if (!state.days || typeof state.days !== "object") state.days = {};
     if (!Array.isArray(state.activeDays)) state.activeDays = [];
     if (!Array.isArray(state.pending.words)) state.pending.words = [];
-    if (state.session && !Array.isArray(state.session.queue)) state.session = null;
+    if (typeof state.onboarded !== "boolean") state.onboarded = Boolean(raw.settings?.onboarded);
+    // 词表里已经没有的词不能留在未做完的一轮里，否则这一轮永远结束不了
+    if (state.session && (!Array.isArray(state.session.queue)
+      || (byId.size && state.session.queue.some((item) => !byId.has(item.id))))) state.session = null;
     state.day = null;
     setDay(state, day);
     return state;
@@ -111,7 +116,6 @@ const Daily = (() => {
     if ([1, 2, 3].includes(source.rounds)) result.rounds = source.rounds;
     if (["n3", "course"].includes(source.source)) result.source = source.source;
     if (typeof source.autoplay === "boolean") result.autoplay = source.autoplay;
-    if (typeof source.onboarded === "boolean") result.onboarded = source.onboarded;
     return result;
   }
 
@@ -337,7 +341,7 @@ const Daily = (() => {
     const rec = state.words[id];
 
     if (action === "known") {
-      knownRecord(state, id, true);
+      knownRecord(state, id, !session.extra);
       session.queue = session.queue.filter((other, index) => index <= session.pos || other.id !== id);
       finishWord(state, id, "known");
     } else if (kind === "intro") {
@@ -567,9 +571,13 @@ const Daily = (() => {
     return cleanRecord(data);
   }
 
+  const SYNC_BATCH = 100;
+
+  /** 每次最多带 100 个改过的词（服务器按 D1 的限制收），剩下的下一次接着送 */
   function syncBody(state) {
     const words = state.pending.words
       .filter((id) => state.words[id]?.updatedAt)
+      .slice(0, SYNC_BATCH)
       .map((id) => ({ id, data: recordData(state.words[id]), updatedAt: state.words[id].updatedAt }));
     // 学过的日子在服务器上只增不减，每次只带最近 30 天
     const body = { words, activeDays: state.activeDays.slice(-30) };

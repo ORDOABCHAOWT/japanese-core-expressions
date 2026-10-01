@@ -83,6 +83,7 @@ const WordsStore = (() => {
     if (inFlight) return inFlight;
     clearTimeout(syncTimer);
     const startVersion = version;
+    const pendingBefore = state.pending.words.length;
     const sentActivity = state.pending.activity;
     const body = JSON.stringify(Daily.syncBody(state));
     setStatus("syncing", "同步中", "正在合并这台设备和网站上的背单词记录…");
@@ -105,6 +106,8 @@ const WordsStore = (() => {
         if (changed) emit();
         const time = new Date(payload.syncedAt || Date.now()).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
         setStatus("synced", "已同步", `${time} 已和其他设备合并`);
+        // 一次最多送 100 个词：还有没送完的就接着送（每轮都会变少，不会一直循环）
+        if (state.pending.words.length && state.pending.words.length < pendingBefore) queueSync(300);
         return payload;
       } catch (error) {
         setStatus(
