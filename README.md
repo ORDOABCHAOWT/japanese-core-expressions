@@ -1,3 +1,5 @@
+> **本仓库已归档（2026-10-04）。** 源码连同提交历史已并入 [word-notebook](https://github.com/ORDOABCHAOWT/word-notebook) 仓库的 `japanese/` 目录，后续开发、构建和部署都在那里进行。
+
 <p align="center"><img src="docs/store-preview.png" alt="日语零基础核心表达功能预览"></p>
 
 <h1 align="center">日语零基础核心表达</h1>
