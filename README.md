@@ -45,7 +45,7 @@
 
 点句子弹出全屏拆解，系统返回手势会先关闭拆解；主要按钮始终在底部标签栏上方，适配刘海屏与底部安全区。
 
-<p align="center"><img src="docs/feature-mobile.png" alt="手机上的句子列表、拆解、闪卡与测试" width="900"></p>
+<p align="center"><img src="docs/feature-mobile.png" alt="手机上的句子列表和拆解" width="900"></p>
 
 ## 学习方式
 

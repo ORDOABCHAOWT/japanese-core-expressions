@@ -5,7 +5,7 @@ The application source code is licensed under the repository's [MIT License](LIC
 The original Japanese-learning text, lesson structure, exercises, and course artwork in the following files and directories are licensed under [Creative Commons Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/):
 
 - `日语零基础核心表达·互动教材.html`
-- `单词闪卡.html`
+- `content/base-flashcards.json` and `content/flashcard-categories.json` (the word list formerly in `单词闪卡.html`)
 - `原文提取.md`
 - `public/`
 - `icon-concepts/`

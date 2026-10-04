@@ -101,7 +101,7 @@ for (const asset of [
   }
 }
 
-if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v16"')) {
+if (!serviceWorker.includes('const CACHE_NAME = "nihongo-core-v17"')) {
   failures.push("Service Worker 缓存版本未升级");
 }
 if (!serviceWorker.includes('"/japanese/words"') || !serviceWorker.includes('"/japanese/library"') || !serviceWorker.includes('"/japanese/test"')) {
@@ -109,6 +109,17 @@ if (!serviceWorker.includes('"/japanese/words"') || !serviceWorker.includes('"/j
 }
 if (!serviceWorker.includes("const MODULE_PATHS = new Set") || !serviceWorker.includes("canonicalModulePath") || !serviceWorker.includes("const cached = await cache.match")) {
   failures.push("模块切换未使用缓存优先的快速导航");
+}
+
+// 安装信息里的快捷入口要和现在的三个模块一致（改了以后记得升 Service Worker 的缓存版本）
+try {
+  const manifest = JSON.parse(read("manifest.webmanifest"));
+  const shortcutUrls = (manifest.shortcuts || []).map((item) => item.url).join(" ");
+  if (shortcutUrls !== "/japanese /japanese/words /japanese/library") failures.push(`manifest 的快捷入口不对：${shortcutUrls}`);
+  if (/闪卡|词汇测试|三路/.test(JSON.stringify(manifest))) failures.push("manifest 里还有旧模块的名字");
+  if (!(manifest.icons || []).every((icon) => /\?v=3$/.test(icon.src))) failures.push("manifest 图标地址缺少版本号");
+} catch (error) {
+  failures.push(`manifest 无法解析：${error.message}`);
 }
 
 function checkScript(name, page) {
